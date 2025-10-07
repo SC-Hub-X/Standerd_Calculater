@@ -1,210 +1,212 @@
 <!doctype html>
 <html lang="si">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Simple Calculator - Sadew</title>
-  <style>
-    :root{
-      --bg:#0f1724; --panel:#111827; --accent:#06b6d4; --btn:#1f2937; --text:#e6eef6;
-      --danger:#ef4444;
-    }
-    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,"Noto Sans Sinhala",sans-serif}
-    body{
-      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-      background:linear-gradient(180deg,#071029, #092234); color:var(--text);
-      padding:20px;
-    }
-    .calc {
-      width:360px; max-width:96vw;
-      background:linear-gradient(180deg,var(--panel), #0b1220);
-      border-radius:12px; padding:18px; box-shadow:0 8px 30px rgba(2,6,23,.7);
-    }
-    .display {
-      background:rgba(255,255,255,0.03); padding:12px; border-radius:8px;
-      min-height:66px; display:flex; flex-direction:column; justify-content:center;
-      margin-bottom:12px;
-    }
-    .expr { font-size:14px; color:#9fb6c6; word-break:break-all; }
-    .result { font-size:28px; font-weight:600; margin-top:4px; text-align:right; }
-    .keys { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-    button {
-      background:var(--btn); color:var(--text); border:0; padding:14px; border-radius:8px;
-      font-size:18px; cursor:pointer; box-shadow:inset 0 -2px 0 rgba(0,0,0,.3);
-      user-select:none;
-    }
-    button.op { background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--accent); }
-    button.wide { grid-column:span 2; }
-    button.danger { background:var(--danger); color:white; }
-    .history {
-      margin-top:12px; max-height:120px; overflow:auto; font-size:13px; color:#b8d6de;
-      border-top:1px dashed rgba(255,255,255,0.03); padding-top:8px;
-    }
-    .history-item { padding:6px 4px; display:flex; justify-content:space-between; gap:10px; }
-    .hint { font-size:12px; color:#8aa5b3; margin-top:8px; text-align:center; }
-    @media (max-width:420px){
-      .result{ font-size:22px }
-      button{ padding:12px; font-size:16px }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title> Simple Calculator </title>
+<style>
+:root{
+  --bg:#0f1724; --panel:#111827; --accent:#06b6d4; --btn:#1f2937; --text:#e6eef6;
+  --danger:#ef4444; --shadow:#06b6d470;
+}
+body.light {
+  --bg:#e9f3ff; --panel:#f5f7fa; --btn:#ffffff; --text:#0a0a0a;
+  --accent:#0078ff; --danger:#e74c3c; --shadow:#0078ff55;
+}
+*{box-sizing:border-box;font-family:Inter,Segoe UI,Roboto,"Noto Sans Sinhala",sans-serif;transition:all .2s ease}
+body{
+  margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(180deg,var(--bg),#071029); color:var(--text);
+  padding:20px;
+}
+.calc {
+  width:380px; max-width:96vw;
+  background:linear-gradient(180deg,var(--panel), #0b1220);
+  border-radius:16px; padding:20px;
+  box-shadow:0 8px 30px var(--shadow);
+}
+.top-bar{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
+}
+.title{font-weight:600;font-size:18px;}
+.theme-toggle{
+  background:var(--btn);color:var(--accent);border:0;padding:8px 12px;border-radius:8px;cursor:pointer;
+}
+.display {
+  background:rgba(255,255,255,0.05); padding:12px; border-radius:8px;
+  min-height:70px; display:flex; flex-direction:column; justify-content:center;
+  margin-bottom:12px;
+}
+.expr { font-size:14px; color:#9fb6c6; word-break:break-all; }
+.result { font-size:30px; font-weight:600; margin-top:4px; text-align:right; }
+.keys { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+button {
+  background:var(--btn); color:var(--text); border:0; padding:14px; border-radius:10px;
+  font-size:18px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.4);
+  user-select:none; transition:transform .1s, background .2s;
+}
+button:hover{background:var(--accent);color:#fff;transform:translateY(-2px);}
+button:active{transform:scale(0.95);}
+button.op { background:transparent; border:1px solid rgba(255,255,255,0.08); color:var(--accent);}
+button.wide { grid-column:span 2; }
+button.danger { background:var(--danger); color:white; }
+.copy-btn {
+  width:100%;margin-top:8px;padding:8px;border:1px solid var(--accent);
+  background:transparent;color:var(--accent);border-radius:8px;cursor:pointer;
+}
+.copy-btn:hover{background:var(--accent);color:#fff;}
+.history {
+  margin-top:12px; max-height:130px; overflow:auto; font-size:13px; color:#b8d6de;
+  border-top:1px dashed rgba(255,255,255,0.08); padding-top:8px;
+}
+.history-item { padding:6px 4px; display:flex; justify-content:space-between; gap:10px; }
+.hint { font-size:12px; color:#8aa5b3; margin-top:8px; text-align:center; }
+@media (max-width:420px){
+  .result{ font-size:24px }
+  button{ padding:12px; font-size:16px }
+}
+</style>
 </head>
 <body>
-  <main class="calc" role="application" aria-label="Calculator">
+  <main class="calc" role="application">
+    <div class="top-bar">
+      <div class="title">🧮 Sadew Calculator Pro</div>
+      <button class="theme-toggle" id="themeBtn">☀️</button>
+    </div>
+
     <div class="display" id="display">
       <div class="expr" id="expression">0</div>
       <div class="result" id="result">0</div>
     </div>
 
     <div class="keys" id="keys">
-      <button class="op" data-action="clear">C</button>
+      <button class="op danger" data-action="clear">C</button>
       <button class="op" data-action="back">⌫</button>
-      <button class="op" data-value="(">(</button>
-      <button class="op" data-value=")">)</button>
+      <button class="op" data-value="%">%</button>
+      <button class="op" data-value="/">÷</button>
 
       <button data-value="7">7</button>
       <button data-value="8">8</button>
       <button data-value="9">9</button>
-      <button class="op" data-value="/">÷</button>
+      <button class="op" data-value="*">×</button>
 
       <button data-value="4">4</button>
       <button data-value="5">5</button>
       <button data-value="6">6</button>
-      <button class="op" data-value="*">×</button>
+      <button class="op" data-value="-">−</button>
 
       <button data-value="1">1</button>
       <button data-value="2">2</button>
       <button data-value="3">3</button>
-      <button class="op" data-value="-">−</button>
+      <button class="op" data-value="+">+</button>
 
       <button data-value="0">0</button>
       <button data-value=".">.</button>
+      <button data-value="(">(</button>
+      <button data-value=")">)</button>
+
+      <button class="wide op" data-value="√(">√</button>
       <button class="wide op" data-action="equals">=</button>
-      <button class="op" data-value="+">+</button>
     </div>
 
-    <div class="hint">Keyboard supported: numbers, + - * / ( ) . Enter = evaluate, Backspace, Escape = clear</div>
+    <button class="copy-btn" id="copyBtn">Copy Result</button>
 
+    <div class="hint">Use keyboard: 0–9, + - * / ( ) . Enter =, Backspace, Esc = clear</div>
     <div class="history" id="history" aria-live="polite"></div>
   </main>
 
-  <script>
-    (function(){
-      const exprEl = document.getElementById('expression');
-      const resEl = document.getElementById('result');
-      const keys = document.getElementById('keys');
-      const historyEl = document.getElementById('history');
+<script>
+(function(){
+  const exprEl=document.getElementById('expression');
+  const resEl=document.getElementById('result');
+  const keys=document.getElementById('keys');
+  const historyEl=document.getElementById('history');
+  const copyBtn=document.getElementById('copyBtn');
+  const themeBtn=document.getElementById('themeBtn');
+  let expression='';
 
-      let expression = '';
+  // Load saved theme and history
+  if(localStorage.getItem('calc-theme')==='light') document.body.classList.add('light');
+  const savedHistory=JSON.parse(localStorage.getItem('calc-history')||'[]');
+  savedHistory.forEach(i=>addHistory(i.expr,i.res));
 
-      function render(){
-        exprEl.textContent = expression || '0';
-      }
+  function render(){ exprEl.textContent=expression||'0'; }
 
-      function sanitizeForEval(s){
-        // allow only digits, operators, parentheses, dot and spaces
-        if(!/^[0-9+\-*/().\s]+$/.test(s)) return null;
-        // prevent sequences of dangerous characters like "*/" at start or "--" maybe okay
-        // basic safety: disallow consecutive operators except valid combos like ")(" not allowed
-        if(/[+\-*/]{2,}/.test(s.replace(/\s+/g,''))) {
-          // allow negative numbers: handle unary minus by allowing leading '-' or '(-'
-          // but keep simple: reject double operators
-          return null;
-        }
-        return s;
-      }
+  function sanitizeForEval(s){
+    if(!/^[0-9+\-*/().%\s√]+$/.test(s)) return null;
+    return s;
+  }
 
-      function evaluateExpression(expr){
-        const safe = sanitizeForEval(expr);
-        if(safe === null) throw new Error('Invalid expression');
-        // replace any unicode × ÷ signs if present (we used * and / in values)
-        const prepared = safe;
-        // use Function to evaluate (slightly safer than eval but similar)
-        // guard against very long expressions
-        if(prepared.length > 200) throw new Error('Expression too long');
-        // evaluate
-        // eslint-disable-next-line no-new-func
-        return Function('"use strict";return (' + prepared + ')')();
-      }
+  function evaluateExpression(expr){
+    const safe=sanitizeForEval(expr);
+    if(!safe) throw new Error('Invalid');
+    const prepared=safe.replace(/√\(/g,'Math.sqrt(').replace(/%/g,'/100');
+    return Function('"use strict";return ('+prepared+')')();
+  }
 
-      function pushHistory(expr, result){
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        item.innerHTML = `<span>${escapeHtml(expr)}</span><strong>${formatResult(result)}</strong>`;
-        historyEl.prepend(item);
-        // keep only last 20
-        while(historyEl.children.length > 20) historyEl.removeChild(historyEl.lastChild);
-      }
+  function addHistory(expr,res){
+    const item=document.createElement('div');
+    item.className='history-item';
+    item.innerHTML=`<span>${expr}</span><strong>${res}</strong>`;
+    historyEl.prepend(item);
+  }
 
-      function escapeHtml(s){
-        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      }
+  function saveHistory(expr,res){
+    const list=JSON.parse(localStorage.getItem('calc-history')||'[]');
+    list.unshift({expr,res});
+    if(list.length>20)list.pop();
+    localStorage.setItem('calc-history',JSON.stringify(list));
+  }
 
-      function formatResult(r){
-        if(typeof r === 'number'){
-          if(!isFinite(r)) return r.toString();
-          // round to 12 significant digits to avoid long floats
-          return Number.parseFloat(r.toPrecision(12)).toString();
-        }
-        return String(r);
-      }
+  function formatResult(r){
+    if(typeof r==='number'){
+      if(!isFinite(r))return r.toString();
+      return Number.parseFloat(r.toPrecision(12)).toString();
+    }
+    return String(r);
+  }
 
-      keys.addEventListener('click', e => {
-        const btn = e.target.closest('button');
-        if(!btn) return;
-        const val = btn.dataset.value;
-        const action = btn.dataset.action;
-        if(action === 'clear'){ expression = ''; resEl.textContent = '0'; render(); return; }
-        if(action === 'back'){ expression = expression.slice(0,-1); render(); return; }
-        if(action === 'equals'){
-          try {
-            const res = evaluateExpression(expression || '0');
-            resEl.textContent = formatResult(res);
-            pushHistory(expression || '0', res);
-            // keep result as new expression to continue calculating
-            expression = String(formatResult(res));
-            render();
-          } catch(err){
-            resEl.textContent = 'Error';
-          }
-          return;
-        }
-        // append value (map displayed ÷ × to operators if needed)
-        if(val){
-          // if user clicked the shown ÷ or × (we used "/" and "*"), keep as-is
-          expression += val;
-          render();
-        }
-      });
+  keys.addEventListener('click',e=>{
+    const btn=e.target.closest('button'); if(!btn) return;
+    const val=btn.dataset.value; const action=btn.dataset.action;
+    if(action==='clear'){expression='';resEl.textContent='0';render();return;}
+    if(action==='back'){expression=expression.slice(0,-1);render();return;}
+    if(action==='equals'){
+      try{
+        const res=evaluateExpression(expression||'0');
+        const formatted=formatResult(res);
+        resEl.textContent=formatted;
+        addHistory(expression,formatted);
+        saveHistory(expression,formatted);
+        expression=formatted; render();
+      }catch{resEl.textContent='Error';}
+      return;
+    }
+    if(val){expression+=val;render();}
+  });
 
-      // keyboard support
-      window.addEventListener('keydown', e => {
-        if(e.key === 'Enter' || e.key === '='){ e.preventDefault();
-          try {
-            const res = evaluateExpression(expression || '0');
-            resEl.textContent = formatResult(res);
-            pushHistory(expression || '0', res);
-            expression = String(formatResult(res));
-            render();
-          } catch {
-            resEl.textContent = 'Error';
-          }
-          return;
-        }
-        if(e.key === 'Escape'){ expression = ''; resEl.textContent = '0'; render(); return; }
-        if(e.key === 'Backspace'){ expression = expression.slice(0,-1); render(); return; }
+  window.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();document.querySelector('[data-action="equals"]').click();return;}
+    if(e.key==='Escape'){expression='';resEl.textContent='0';render();return;}
+    if(e.key==='Backspace'){expression=expression.slice(0,-1);render();return;}
+    if('0123456789+-*/().%'.includes(e.key)){expression+=e.key;render();}
+  });
 
-        // allow digits and operators
-        const allowed = '0123456789+-*/().';
-        if(allowed.includes(e.key)){
-          expression += e.key;
-          render();
-          return;
-        }
-      });
+  copyBtn.addEventListener('click',()=>{
+    navigator.clipboard.writeText(resEl.textContent);
+    copyBtn.textContent='✅ Copied!';
+    setTimeout(()=>copyBtn.textContent='Copy Result',1500);
+  });
 
-      // initial render
-      render();
-    })();
-  </script>
+  themeBtn.addEventListener('click',()=>{
+    document.body.classList.toggle('light');
+    const mode=document.body.classList.contains('light')?'light':'dark';
+    localStorage.setItem('calc-theme',mode);
+    themeBtn.textContent=mode==='light'?'🌙':'☀️';
+  });
+
+  render();
+})();
+</script>
 </body>
 </html>
