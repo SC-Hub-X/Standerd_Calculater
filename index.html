@@ -223,6 +223,11 @@ body{margin:0;height:100vh;overflow:hidden;font-family:Inter,system-ui,"Segoe UI
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
         <span class="hidden menu-label">Custom Mode (Cloud)</span>
     </button>
+
+    <!-- Creator Credit -->
+    <div class="mt-auto p-3 text-center hidden" id="creatorCredit">
+        <p class="text-xs hint-dark">© 2025 Sadew Chamathsara</p>
+    </div>
 </div>
 
 <div class="main flex-1 flex justify-center items-center p-4 md:p-10 h-screen relative">
@@ -316,6 +321,7 @@ function toggleSidebarWidth() {
     const menuLabels = document.querySelectorAll('.menu-label');
     const menuBtns = document.querySelectorAll('.menu-btn');
     const sidebarHeader = document.getElementById('sidebarHeader');
+    const creatorCredit = document.getElementById('creatorCredit');
 
     // 1. Toggle Width
     if (isSidebarExpanded) {
@@ -325,6 +331,7 @@ function toggleSidebarWidth() {
         // 2. Show Text/Alignments (Desktop View)
         titleEl.classList.remove('hidden');
         userIdDisplay.classList.remove('hidden');
+        creatorCredit.classList.remove('hidden');
         sidebarHeader.classList.remove('justify-center');
         sidebarHeader.classList.add('justify-between');
         
@@ -341,6 +348,7 @@ function toggleSidebarWidth() {
         // 2. Hide Text/Alignments (Mobile View)
         titleEl.classList.add('hidden');
         userIdDisplay.classList.add('hidden');
+        creatorCredit.classList.add('hidden');
         sidebarHeader.classList.remove('justify-between');
         sidebarHeader.classList.add('justify-center');
 
@@ -447,6 +455,11 @@ function applyTheme(theme) {
     document.querySelector('.hint').classList.add(classes.hint);
     customListEl.querySelector('#customEmpty').classList.remove(oppositeClasses.hint);
     customListEl.querySelector('#customEmpty').classList.add(classes.hint);
+    const creatorCreditText = document.querySelector('#creatorCredit p');
+    if (creatorCreditText) {
+        creatorCreditText.classList.remove(oppositeClasses.hint);
+        creatorCreditText.classList.add(classes.hint);
+    }
     
     copyBtn.classList.remove(oppositeClasses.copy);
     copyBtn.classList.add(classes.copy);
@@ -1127,3 +1140,4 @@ initializeSidebarState(); // Set initial state based on screen size
 
 </body>
 </html>
+
