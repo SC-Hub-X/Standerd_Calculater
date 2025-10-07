@@ -1,186 +1,1129 @@
 <!doctype html>
-<html lang="si">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sadew Calculator</title>
-  <style>
-    :root{
-      --bg:#0f1724; --panel:#111827; --accent:#06b6d4; --btn:#1f2937; --text:#e6eef6;
-      --danger:#ef4444;
-    }
-    *{box-sizing:border-box;font-family:Inter,system-ui,"Segoe UI",Roboto,"Noto Sans Sinhala",sans-serif}
-    body{
-      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-      background:radial-gradient(circle at top,#0b1220 10%, #071020 90%);
-      color:var(--text); padding:20px;
-    }
-    .calc {
-      width:360px; max-width:96vw;
-      background:linear-gradient(180deg,var(--panel), #0b1220);
-      border-radius:16px; padding:18px;
-      box-shadow:0 10px 30px rgba(0,0,0,.6);
-      backdrop-filter:blur(6px);
-    }
-    .display {
-      background:rgba(255,255,255,0.05); padding:12px; border-radius:10px;
-      min-height:70px; display:flex; flex-direction:column; justify-content:center;
-      margin-bottom:14px; box-shadow:inset 0 0 8px rgba(0,0,0,.3);
-    }
-    .expr { font-size:14px; color:#9fb6c6; word-break:break-all; }
-    .result { font-size:30px; font-weight:600; margin-top:6px; text-align:right; transition:all .2s ease; }
-    .keys { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-    button {
-      background:var(--btn); color:var(--text); border:0; padding:14px;
-      border-radius:10px; font-size:18px; cursor:pointer; user-select:none;
-      box-shadow:inset 0 -2px 0 rgba(0,0,0,.3), 0 2px 4px rgba(0,0,0,.4);
-      transition:all .1s ease;
-    }
-    button:hover{background:var(--accent);color:#fff;transform:translateY(-2px);}
-    button:active{transform:scale(0.95);}
-    button.op { background:transparent; border:1px solid rgba(255,255,255,0.08); color:var(--accent); }
-    button.wide { grid-column:span 2; }
-    button.danger { background:var(--danger); color:white; }
-    .history {
-      margin-top:12px; max-height:120px; overflow:auto; font-size:13px; color:#b8d6de;
-      border-top:1px dashed rgba(255,255,255,0.05); padding-top:8px;
-    }
-    .history-item { padding:6px 4px; display:flex; justify-content:space-between; gap:10px; }
-    .hint { font-size:12px; color:#8aa5b3; margin-top:8px; text-align:center; }
-    #copyBtn{
-      width:100%;background:transparent;border:1px solid var(--accent);color:var(--accent);
-      margin-top:10px;padding:8px;border-radius:8px;cursor:pointer;transition:.2s;
-    }
-    #copyBtn:hover{background:var(--accent);color:#fff;}
-    @media (max-width:420px){
-      .result{ font-size:22px }
-      button{ padding:12px; font-size:16px }
-    }
-    .flash {
-      animation: flash 0.2s ease;
-    }
-    @keyframes flash{
-      from{background-color:var(--accent);color:white;}
-      to{background-color:var(--btn);}
-    }
-  </style>
-</head>
-<body>
-  <main class="calc" role="application" aria-label="Calculator">
-    <div class="display" id="display">
-      <div class="expr" id="expression">0</div>
-      <div class="result" id="result">0</div>
-    </div>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sadew Pro 10-Mode Calculator (Themed, Cloud)</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, doc, collection, query, onSnapshot, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 
-    <div class="keys" id="keys">
-      <button class="op danger" data-action="clear">C</button>
-      <button class="op" data-action="back">⌫</button>
-      <button class="op" data-value="%">%</button>
-      <button class="op" data-value="/">÷</button>
+  // Global variables provided by the environment
+  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+  const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-      <button data-value="7">7</button>
-      <button data-value="8">8</button>
-      <button data-value="9">9</button>
-      <button class="op" data-value="*">×</button>
+  let db, auth, userId = null;
+  let isFirebaseReady = false;
 
-      <button data-value="4">4</button>
-      <button data-value="5">5</button>
-      <button data-value="6">6</button>
-      <button class="op" data-value="-">−</button>
+  if (firebaseConfig) {
+      // setLogLevel('debug'); // Uncomment for debugging
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      auth = getAuth(app);
 
-      <button data-value="1">1</button>
-      <button data-value="2">2</button>
-      <button data-value="3">3</button>
-      <button class="op" data-value="+">+</button>
-
-      <button data-value="0">0</button>
-      <button data-value=".">.</button>
-      <button data-value="√(">√</button>
-      <button class="op wide" data-action="equals">=</button>
-    </div>
-
-    <button id="copyBtn">Copy Result</button>
-
-    <div class="hint">Keyboard supported: 0–9, + - * / ( ) . Enter, Backspace, Esc</div>
-    <div class="history" id="history" aria-live="polite"></div>
-  </main>
-
-  <script>
-    (function(){
-      const exprEl=document.getElementById('expression');
-      const resEl=document.getElementById('result');
-      const keys=document.getElementById('keys');
-      const historyEl=document.getElementById('history');
-      const copyBtn=document.getElementById('copyBtn');
-      let expression='';
-
-      const clickSound=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_d7b2ec86d7.mp3");
-      clickSound.volume=0.15;
-
-      function render(){exprEl.textContent=expression||'0';}
-      function sanitizeForEval(s){if(!/^[0-9+\-*/().%\s√]+$/.test(s))return null;return s;}
-      function evaluateExpression(expr){
-        const safe=sanitizeForEval(expr);
-        if(!safe)throw new Error("Invalid");
-        const prepared=safe.replace(/√\(/g,"Math.sqrt(").replace(/%/g,"/100");
-        return Function('"use strict";return ('+prepared+')')();
-      }
-
-      function pushHistory(expr,result){
-        const item=document.createElement('div');
-        item.className='history-item';
-        item.innerHTML=`<span>${expr}</span><strong>${result}</strong>`;
-        historyEl.prepend(item);
-        while(historyEl.children.length>15)historyEl.removeChild(historyEl.lastChild);
-      }
-
-      function formatResult(r){
-        if(typeof r==='number'){
-          if(!isFinite(r))return r.toString();
-          return Number.parseFloat(r.toPrecision(12)).toString();
-        }
-        return String(r);
-      }
-
-      keys.addEventListener('click',e=>{
-        const btn=e.target.closest('button'); if(!btn)return;
-        clickSound.currentTime=0; clickSound.play();
-        btn.classList.add("flash"); setTimeout(()=>btn.classList.remove("flash"),150);
-        const val=btn.dataset.value; const action=btn.dataset.action;
-        if(action==="clear"){expression='';resEl.textContent='0';render();return;}
-        if(action==="back"){expression=expression.slice(0,-1);render();return;}
-        if(action==="equals"){
-          try{
-            const res=evaluateExpression(expression||'0');
-            const formatted=formatResult(res);
-            resEl.textContent=formatted;
-            pushHistory(expression,formatted);
-            expression=formatted; render();
-          }catch{
-            resEl.textContent="Error";
-            setTimeout(()=>{resEl.textContent='0';expression='';render();},1200);
+      async function initializeAuth() {
+          try {
+              if (initialAuthToken) {
+                  await signInWithCustomToken(auth, initialAuthToken);
+              } else {
+                  await signInAnonymously(auth);
+              }
+          } catch (error) {
+              console.error("Firebase Auth error:", error);
           }
-          return;
+      }
+      initializeAuth();
+  }
+
+  window.initFirebase = (callback) => {
+      if (isFirebaseReady) return callback(db, auth, userId);
+      onAuthStateChanged(auth, (user) => {
+          if (user) {
+              userId = user.uid;
+              document.getElementById('userIdDisplay').textContent = `User: ${userId.substring(0, 8)}...`;
+          } else {
+              // Should not happen if signInAnonymously is successful, but fall back
+              userId = crypto.randomUUID();
+              document.getElementById('userIdDisplay').textContent = `User: Anon-${userId.substring(0, 8)}...`;
+          }
+          isFirebaseReady = true;
+          callback(db, auth, userId);
+      });
+  };
+
+</script>
+<!-- Chart.js for Graph Mode -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* --- BASE & COMMON STYLES --- */
+body{margin:0;height:100vh;overflow:hidden;font-family:Inter,system-ui,"Segoe UI",Roboto,"Noto Sans Sinhala",sans-serif;}
+/* The sidebar width is now controlled by JS, transition is essential */
+#sidebar { transition: width 0.3s ease-in-out; } 
+#keys.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+#keys.grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
+.key { transition: all 0.1s ease-out; }
+.key:active { transform: scale(0.95); box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.4); }
+#keys { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
+.menu-btn { transition: background-color 0.2s, color 0.2s, transform 0.1s; }
+
+/* Scrollbar styles (Default Dark Mode) */
+.sidebar::-webkit-scrollbar, #keys::-webkit-scrollbar, #history::-webkit-scrollbar, #customList::-webkit-scrollbar { width: 8px; height: 8px; }
+.sidebar::-webkit-scrollbar-track, #keys::-webkit-scrollbar-track, #history::-webkit-scrollbar-track, #customList::-webkit-scrollbar-track { background: #111827; border-radius: 4px; }
+.sidebar::-webkit-scrollbar-thumb, #keys::-webkit-scrollbar-thumb, #history::-webkit-scrollbar-thumb, #customList::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 4px; }
+.sidebar::-webkit-scrollbar-thumb:hover, #keys::-webkit-scrollbar-thumb:hover, #history::-webkit-scrollbar-thumb:hover, #customList::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+
+/* --- THEME SPECIFIC STYLES (Controlled by JS/Classes) --- */
+
+/* DARK MODE (Default) */
+.body-dark { background-color: #030712; color: white; }
+.sidebar-dark { background-color: #111827; }
+.calc-dark { background-color: #111827; }
+.display-dark { background-color: rgba(31, 41, 55, 0.7); }
+.expr-dark { color: #9ca3af; }
+.result-dark { color: #a78bfa; }
+.text-dark { color: white; }
+.key-normal-dark { background-color: #1f2937; }
+.key-action-dark { background-color: #374151; }
+.key-equals-dark { background-color: #8b5cf6; }
+.key-func-dark { background-color: #111827; }
+.key-op-dark { background-color: #8b5cf6; }
+.menu-btn-dark { color: white; }
+.menu-btn-active-dark { background-color: #7c3aed; }
+.history-item-dark:hover { background-color: #1f2937; }
+.hint-dark { color: #6b7280; }
+.graph-border-dark { border-color: #374151; }
+.graph-bg-dark { background-color: #111827; }
+.frame-dark {
+    background: rgba(17, 24, 32, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* LIGHT MODE */
+.body-light { background-color: #f9fafb; color: #1f2937; }
+.sidebar-light { background-color: white; }
+.calc-light { background-color: white; }
+.display-light { background-color: rgba(229, 231, 235, 0.7); }
+.expr-light { color: #6b7280; }
+.result-light { color: #6d28d9; }
+.text-light { color: #1f2937; }
+.key-normal-light { background-color: #e5e7eb; }
+.key-action-light { background-color: #d1d5db; }
+.key-equals-light { background-color: #8b5cf6; }
+.key-func-light { background-color: #f3f4f6; }
+.key-op-light { background-color: #a78bfa; }
+.menu-btn-light { color: #1f2937; }
+.menu-btn-active-light { background-color: #a78bfa; color: white; }
+.history-item-light:hover { background-color: #f3f4f6; }
+.hint-light { color: #9ca3af; }
+.graph-border-light { border-color: #d1d5db; }
+.graph-bg-light { background-color: #ffffff; }
+.frame-light {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Overriding Scrollbar for Light Mode */
+.body-light .sidebar::-webkit-scrollbar-track, .body-light #keys::-webkit-scrollbar-track, .body-light #history::-webkit-scrollbar-track, .body-light #customList::-webkit-scrollbar-track { background: #e5e7eb; }
+.body-light .sidebar::-webkit-scrollbar-thumb, .body-light #keys::-webkit-scrollbar-thumb, .body-light #history::-webkit-scrollbar-thumb, .body-light #customList::-webkit-scrollbar-thumb { background: #8b5cf6; }
+
+/* Toast Notification Styles */
+#toastContainer {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    pointer-events: none;
+}
+.toast {
+    padding: 12px 20px;
+    margin-top: 8px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    transform: translateY(20px);
+}
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.toast-success { background-color: #10b981; color: white; }
+.toast-error { background-color: #ef4444; color: white; }
+</style>
+</head>
+
+<body class="body-dark flex min-h-screen" id="appBody">
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div id="toastContainer"></div>
+
+<!-- SIDEBAR (Adaptive Width controlled by JS) -->
+<div class="sidebar w-16 sidebar-dark flex flex-col py-3 overflow-y-auto transition-all duration-300 shadow-xl" id="sidebar">
+    <!-- Header with Toggle Button -->
+    <div class="p-3 mb-2 font-bold text-lg text-violet-400 flex items-center justify-center space-x-2" id="sidebarHeader">
+        <span class="hidden" id="sidebarTitle">Calculator Modes</span>
+        <!-- Toggle Button for Mobile/Desktop View -->
+        <button id="sidebarToggle" class="p-1 rounded-full text-violet-300 hover:bg-violet-600 hover:text-white transition duration-200" aria-label="Toggle Sidebar Width">
+            <svg id="toggleIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+    </div>
+    
+    <!-- User ID Display (Hidden when collapsed) -->
+    <div class="p-3 mb-4 text-xs text-gray-400 break-words hidden" id="userIdDisplay">Loading User...</div>
+    
+    <!-- Menu Items -->
+    <button class="menu-btn active menu-btn-active-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 transition duration-150 rounded-r-full" data-mode="standard">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        <span class="hidden menu-label">Standard Mode</span>
+    </button>
+    <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="scientific">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 11h2m10 0h2M3 15h4m10 0h4M2 12l2-2h16l2 2M16 4h4v4h-4zM8 12h8v8H8z"></path></svg>
+        <span class="hidden menu-label">Scientific Mode</span>
+    </button>
+    <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="programmer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+        <span class="hidden menu-label">Programmer Mode</span>
+    </button>
+    <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="date">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <span class="hidden menu-label">Date Mode</span>
+    </button>
+    <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="finance">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        <span class="hidden menu-label">Finance Mode</span>
+    </button>
+    <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="stats">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 6-6M4 21h16a2 2 0 002-2V5a2 2 0 00-2-2H4a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+        <span class="hidden menu-label">Statistics Mode</span>
+    </button>
+    <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="matrix">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        <span class="hidden menu-label">Matrix Mode</span>
+    </button>
+    <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="converter">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 12l-4-4m4 4v-4m0 4l4-4"></path></svg>
+        <span class="hidden menu-label">Converter Mode</span>
+    </button>
+    <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="graph">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        <span class="hidden menu-label">Graph Mode</span>
+    </button>
+    <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="custom">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+        <span class="hidden menu-label">Custom Mode (Cloud)</span>
+    </button>
+</div>
+
+<div class="main flex-1 flex justify-center items-center p-4 md:p-10 h-screen relative">
+    
+    <!-- Theme Toggle Button -->
+    <button id="themeToggleBtn" class="absolute top-4 right-4 md:top-10 md:right-10 p-3 rounded-full shadow-lg transition duration-200" aria-label="Toggle Dark/Light Mode">
+        <!-- SVG for Moon (Dark Mode Icon) - Initial State -->
+        <svg id="moonIcon" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.903A7.5 7.5 0 0110 15a7.5 7.5 0 01-7.293-8.097 8 8 0 0014.586 8.097z"></path></svg>
+        <!-- SVG for Sun (Light Mode Icon) - Hidden Initially -->
+        <svg id="sunIcon" class="w-6 h-6 text-yellow-500 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 4.364a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707zM3 10a1 1 0 011-1h1a1 1 0 110 2H4a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-4.95-.5a1 1 0 00-1.414 0l-.707.707a1 1 0 101.414 1.414l.707-.707a1 1 0 000-1.414zM4 15a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-9.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 15.636a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707z" clip-rule="evenodd"></path></svg>
+    </button>
+
+    <!-- WATER FRAME CONTAINER -->
+    <div id="waterFrame" class="frame-dark shadow-2xl rounded-3xl p-2 md:p-3 flex flex-col h-full w-full max-w-lg md:max-w-xl transition-all duration-300">
+        <main class="calc calc-dark rounded-2xl p-4 md:p-6 flex flex-col h-full transition-all duration-300" role="application" aria-label="Calculator" id="calculator">
+            <div class="display display-dark p-4 rounded-xl min-h-[90px] mb-4 shadow-inner flex flex-col justify-center">
+                <div class="expr text-sm break-all expr-dark" id="expression">0</div>
+                <div class="result text-4xl font-bold mt-2 text-right result-dark" id="result">0</div>
+            </div>
+
+            <!-- Graph Container (Now centrally managed) -->
+            <div id="graphContainer" class="hidden flex-1 mb-4">
+                <canvas id="graphCanvas" class="w-full h-full rounded-xl border graph-border-dark graph-bg-dark"></canvas>
+            </div>
+            
+            <div class="keys grid gap-3 flex-1 overflow-y-auto" id="keys"></div>
+
+            <div class="mt-4">
+                <button id="copyBtn" class="w-full py-3 key-action-dark text-white font-semibold rounded-lg transition duration-200">Copy Result</button>
+                <!-- The Hint element will now be dynamic -->
+                <div class="hint text-xs mt-2 text-center hint-dark">Keyboard supported: 0–9, + - * / ( ) . Enter, Backspace, Esc</div>
+            </div>
+            
+            <div class="history mt-4 max-h-40 overflow-y-auto text-sm border-t border-gray-800 pt-3" id="history" aria-live="polite">
+                <h3 class="font-semibold mb-2 text-dark">Calculation History (Cloud)</h3>
+                <p class="text-xs hint-dark mt-1" id="historyLoading">Loading history from cloud...</p>
+                <!-- History items will be inserted here -->
+            </div>
+            
+            <div id="customList" class="hidden mt-4 max-h-60 overflow-y-auto text-sm border-t border-gray-800 pt-3">
+                <h3 class="font-semibold mb-2 result-dark">Saved Custom Calculations (Cloud)</h3>
+                <!-- Custom list items will be inserted here -->
+                <p class="text-xs hint-dark mt-1" id="customEmpty">No custom calculations saved yet.</p>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+// Main calculator logic
+(function(){
+const appBody = document.getElementById('appBody');
+const exprEl=document.getElementById('expression');
+const resEl=document.getElementById('result');
+const keys=document.getElementById('keys');
+const historyEl=document.getElementById('history');
+const customListEl=document.getElementById('customList');
+const copyBtn=document.getElementById('copyBtn');
+const sidebar=document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const waterFrame=document.getElementById('waterFrame');
+const graphContainer=document.getElementById('graphContainer');
+const graphCanvas = document.getElementById('graphCanvas');
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+const moonIcon = document.getElementById('moonIcon');
+const sunIcon = document.getElementById('sunIcon');
+const toastContainer = document.getElementById('toastContainer'); // New element
+
+let expression='';
+let currentMode='standard';
+let customCalculations = [];
+let currentTheme = 'dark';
+let graphChart = null;
+let memory = 0; // New Memory State
+
+// Sidebar State (Mobile/Desktop Toggle)
+let isSidebarExpanded = false; 
+
+// Firebase instances will be set here after initialization
+let firestoreDb = null;
+let currentUserId = null;
+
+
+// --- SIDEBAR TOGGLE (Manual Mobile/Desktop View Switch) ---
+
+function toggleSidebarWidth() {
+    isSidebarExpanded = !isSidebarExpanded;
+    const titleEl = document.getElementById('sidebarTitle');
+    const userIdDisplay = document.getElementById('userIdDisplay');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const menuLabels = document.querySelectorAll('.menu-label');
+    const menuBtns = document.querySelectorAll('.menu-btn');
+    const sidebarHeader = document.getElementById('sidebarHeader');
+
+    // 1. Toggle Width
+    if (isSidebarExpanded) {
+        sidebar.classList.remove('w-16');
+        sidebar.classList.add('w-56');
+        
+        // 2. Show Text/Alignments (Desktop View)
+        titleEl.classList.remove('hidden');
+        userIdDisplay.classList.remove('hidden');
+        sidebarHeader.classList.remove('justify-center');
+        sidebarHeader.classList.add('justify-between');
+        
+        menuLabels.forEach(s => s.classList.remove('hidden'));
+        menuBtns.forEach(b => b.classList.remove('justify-center'));
+        menuBtns.forEach(b => b.classList.add('justify-start'));
+        
+        // 3. Icon (Collapse Arrow)
+        toggleIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>`; // Chevron Left
+    } else {
+        sidebar.classList.remove('w-56');
+        sidebar.classList.add('w-16');
+
+        // 2. Hide Text/Alignments (Mobile View)
+        titleEl.classList.add('hidden');
+        userIdDisplay.classList.add('hidden');
+        sidebarHeader.classList.remove('justify-between');
+        sidebarHeader.classList.add('justify-center');
+
+        menuLabels.forEach(s => s.classList.add('hidden'));
+        menuBtns.forEach(b => b.classList.remove('justify-start'));
+        menuBtns.forEach(b => b.classList.add('justify-center'));
+        
+        // 3. Icon (Expand Arrow)
+        toggleIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>`; // Chevron Right
+    }
+}
+
+// Initial check for screens wider than 768px (md) to start in expanded mode
+function initializeSidebarState() {
+    if (window.innerWidth >= 768) {
+        // Force desktop view on large screens initially
+        isSidebarExpanded = false; // Toggle logic will flip this to true
+        toggleSidebarWidth();
+    }
+}
+
+// --- TOAST NOTIFICATIONS (UX) ---
+function showToast(message, isSuccess = true) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${isSuccess ? 'toast-success' : 'toast-error'} text-sm font-medium`;
+    toast.textContent = message;
+    
+    toastContainer.prepend(toast); // Add to top of container
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+
+    // Animate out and remove
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 500); // Wait for transition to finish
+    }, 3000);
+}
+
+
+// --- THEME MANAGEMENT ---
+
+const themeClasses = {
+    dark: {
+        body: 'body-dark', sidebar: 'sidebar-dark', calc: 'calc-dark', display: 'display-dark',
+        expr: 'expr-dark', result: 'result-dark', text: 'text-dark', copy: 'key-action-dark',
+        key_normal: 'key-normal-dark', key_action: 'key-action-dark', key_equals: 'key-equals-dark', 
+        key_func: 'key-func-dark', key_op: 'key-op-dark', menu_btn: 'menu-btn-dark', 
+        menu_active: 'menu-btn-active-dark', history_hover: 'history-item-dark:hover', 
+        hint: 'hint-dark', graph_border: 'graph-border-dark', graph_bg: 'graph-bg-dark',
+        chart_color: 'rgba(139, 92, 246, 0.8)', chart_text: 'white', chart_grid: 'rgba(255, 255, 255, 0.1)',
+        frame: 'frame-dark',
+    },
+    light: {
+        body: 'body-light', sidebar: 'sidebar-light', calc: 'calc-light', display: 'display-light',
+        expr: 'expr-light', result: 'result-light', text: 'text-light', copy: 'key-action-light',
+        key_normal: 'key-normal-light', key_action: 'key-action-light', key_equals: 'key-equals-light', 
+        key_func: 'key-func-light', key_op: 'key-op-light', menu_btn: 'menu-btn-light', 
+        menu_active: 'menu-btn-active-light', history_hover: 'history-item-light:hover', 
+        hint: 'hint-light', graph_border: 'graph-border-light', graph_bg: 'graph-bg-light',
+        chart_color: 'rgba(124, 58, 237, 1)', chart_text: '#1f2937', chart_grid: 'rgba(0, 0, 0, 0.1)',
+        frame: 'frame-light',
+    }
+};
+
+function applyTheme(theme) {
+    const isDark = theme === 'dark';
+    const classes = themeClasses[theme];
+    const oppositeClasses = themeClasses[isDark ? 'light' : 'dark'];
+
+    // 1. Body, sidebar, and frame swap
+    appBody.classList.remove(oppositeClasses.body);
+    appBody.classList.add(classes.body);
+    sidebar.classList.remove(oppositeClasses.sidebar);
+    sidebar.classList.add(classes.sidebar);
+    
+    waterFrame.classList.remove(oppositeClasses.frame);
+    waterFrame.classList.add(classes.frame);
+    
+    // 2. Calculator main element
+    calculator.classList.remove(oppositeClasses.calc);
+    calculator.classList.add(classes.calc);
+    
+    // 3. Display and Text
+    document.querySelector('.display').classList.remove(oppositeClasses.display);
+    document.querySelector('.display').classList.add(classes.display);
+    exprEl.classList.remove(oppositeClasses.expr);
+    exprEl.classList.add(classes.expr);
+    resEl.classList.remove(oppositeClasses.result);
+    resEl.classList.add(classes.result);
+    
+    document.querySelectorAll('.text-dark').forEach(el => el.classList.remove('text-dark', 'text-light'));
+    document.querySelectorAll('.text-light').forEach(el => el.classList.remove('text-dark', 'text-light'));
+    
+    historyEl.querySelector('h3').classList.remove(oppositeClasses.text);
+    historyEl.querySelector('h3').classList.add(classes.text);
+    customListEl.querySelector('h3').classList.remove(oppositeClasses.result);
+    customListEl.querySelector('h3').classList.add(classes.result);
+    document.querySelector('.hint').classList.remove(oppositeClasses.hint);
+    document.querySelector('.hint').classList.add(classes.hint);
+    customListEl.querySelector('#customEmpty').classList.remove(oppositeClasses.hint);
+    customListEl.querySelector('#customEmpty').classList.add(classes.hint);
+    
+    copyBtn.classList.remove(oppositeClasses.copy);
+    copyBtn.classList.add(classes.copy);
+    
+    // 4. Sidebar buttons
+    document.querySelectorAll('.menu-btn').forEach(btn => {
+        btn.classList.remove(oppositeClasses.menu_btn);
+        btn.classList.add(classes.menu_btn);
+        
+        btn.classList.remove(oppositeClasses.menu_active);
+        // Reapply active class if it was active
+        if (btn.classList.contains('active')) {
+            btn.classList.add(classes.menu_active);
         }
-        if(val){expression+=val;render();}
-      });
+    });
 
-      window.addEventListener('keydown',e=>{
-        const allowed='0123456789+-*/().%';
-        if(e.key==='Enter'){e.preventDefault();document.querySelector('[data-action="equals"]').click();return;}
-        if(e.key==='Escape'){expression='';resEl.textContent='0';render();return;}
-        if(e.key==='Backspace'){expression=expression.slice(0,-1);render();return;}
-        if(allowed.includes(e.key)){expression+=e.key;render();}
-      });
+    // 5. Graph container
+    graphCanvas.classList.remove(oppositeClasses.graph_border, oppositeClasses.graph_bg);
+    graphCanvas.classList.add(classes.graph_border, classes.graph_bg);
+    
+    // 6. Re-render keys to apply new color schemes
+    renderKeys(currentMode);
+    
+    // 7. Re-plot graph if it exists to apply new colors/fonts
+    if (currentMode === 'graph' && expression.trim() !== '' && graphChart) {
+        const funcStr = expression;
+        graphChart.destroy();
+        graphChart = null;
+        plotGraph(funcStr);
+    }
+    
+    // 8. Re-render history list items
+    renderHistory(window.historyData || []);
+    renderCustomList();
 
-      copyBtn.addEventListener('click',()=>{
-        navigator.clipboard.writeText(resEl.textContent);
-        copyBtn.textContent='✅ Copied!';
-        setTimeout(()=>copyBtn.textContent='Copy Result',1500);
-      });
+    // 9. Toggle icons
+    if (isDark) {
+        moonIcon.classList.remove('hidden');
+        sunIcon.classList.add('hidden');
+        themeToggleBtn.classList.remove('bg-gray-200');
+        themeToggleBtn.classList.add('bg-gray-800');
+    } else {
+        moonIcon.classList.add('hidden');
+        sunIcon.classList.remove('hidden');
+        themeToggleBtn.classList.remove('bg-gray-800');
+        themeToggleBtn.classList.add('bg-gray-200');
+    }
 
-      render();
-    })();
-  </script>
+    currentTheme = theme;
+}
+
+themeToggleBtn.addEventListener('click', () => {
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(newTheme);
+});
+
+
+const layouts = {
+// Added Memory (M+, M-, MR, MC) functions to Standard mode
+standard:[['MC','MR','M+','M-'],['C','⌫','%','/'],['7','8','9','*'],['4','5','6','-'],['1','2','3','+'],['0','.','√(','=']],
+// Added Memory (M+, M-, MR, MC) functions to Scientific mode
+scientific:[['MC','MR','M+','M-','^'],['C','⌫','(',')','π','e'],['sin(','cos(','tan(','ln(','log('],['√(','1/x','|x|','7','8','9'],['/','4','5','6','*'],['-','1','2','3','+'],['0','.','+/-','=']],
+programmer:[['C','⌫','DEC','HEX','BIN'],['AND','OR','NOT','XOR','<<','>>'],['7','8','9','/'],['4','5','6','*'],['1','2','3','-'],['0','.','=','+'],['A','B','C','D','E','F']],
+converter:[['C','⌫','km→m','m→km'],['kg→g','g→kg','°C→°F','°F→°C'],['L→mL','mL→L','=','']],
+finance:[['C','⌫','%','SI(','CI('],['7','8','9','/'],['4','5','6','*'],['1','2','3','-'],['0','.','(','+'],[',',')','=','']],
+stats:[['C','⌫','( )','+','-','*','/'],['mean','median','mode','std'],['7','8','9','1','2','3','0','.','=','']],
+matrix:[['C','⌫','[ ]','+','-','*'],['det','inv','trans','=','','']],
+date:[['C','⌫','Today','DaysBetween(','+','-','*','/','=']],
+graph:[['C','⌫','(',')','^'],['x','sin(','cos(','tan('],['√(','ln(','log(','/'],['7','8','9','*'],['4','5','6','-'],['1','2','3','+'],['0','.','Plot','']],
+custom:[['C','⌫','1','2','3','4'],['5','6','7','8'],['9','0','Save','Load']]
+};
+
+function renderKeys(mode){
+const classes = themeClasses[currentTheme];
+keys.innerHTML='';
+keys.className = 'keys grid gap-3 flex-1 overflow-y-auto ' + (['programmer', 'matrix', 'stats'].includes(mode) ? 'grid-cols-6' : 'grid-cols-4');
+if (mode === 'finance' || mode === 'graph') { keys.classList.remove('grid-cols-6'); keys.classList.add('grid-cols-4'); }
+
+const layout=layouts[mode]||layouts['standard'];
+layout.forEach(row=>{row.forEach(val=>{if(!val) return;
+let btn=document.createElement('button');
+btn.classList.add('key', 'p-3', 'rounded-xl', 'text-xl', 'font-semibold', 'shadow-md', 'transition', 'duration-150');
+
+// Apply base style
+btn.classList.add(classes.key_normal, currentTheme === 'dark' ? 'text-white' : 'text-gray-800');
+
+if(['C','⌫','MC','MR'].includes(val)) {
+    // Clear, Backspace, Memory Recall/Clear (Action Keys)
+    btn.classList.remove(classes.key_normal);
+    btn.classList.add(classes.key_action);
+    if(currentTheme === 'dark') btn.classList.add('text-white');
+}
+if(['/','*','-','+','^','%'].includes(val)) {
+    // Operator Keys
+    btn.classList.remove(classes.key_normal, classes.key_action);
+    btn.classList.add(classes.key_op, 'text-white');
+}
+if(val==='C') {
+    // Clear (Special Accent)
+    btn.classList.remove(classes.key_action);
+    btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
+}
+if(val==='=') {
+    // Equals Key
+    btn.classList.remove(classes.key_normal, classes.key_op, classes.key_action);
+    btn.classList.add('col-span-2', classes.key_equals, 'hover:opacity-80', 'text-white');
+}
+if(['DEC','HEX','BIN','mean','median','mode','std','det','inv','trans','Today','DaysBetween(','SI(','CI(','Save','Load', 'x','M+','M-'].includes(val)) {
+    // Function Keys (including M+/M- for visual grouping)
+    btn.classList.remove(classes.key_normal, classes.key_action);
+    btn.classList.add(classes.key_func, currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700', currentTheme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-300');
+}
+if(val==='Plot') {
+    // Plot Key (Special Accent)
+    btn.classList.remove(classes.key_normal, classes.key_op, classes.key_action);
+    btn.classList.add('col-span-2', 'bg-emerald-600', 'hover:bg-emerald-500', 'text-white');
+}
+
+btn.textContent=val; btn.dataset.value=val;
+if(val==='C') btn.dataset.action='clear';
+if(val==='⌫') btn.dataset.action='back';
+if(val==='=') btn.dataset.action='equals';
+if(['MC','MR','M+','M-'].includes(val)) btn.dataset.action='memory';
+keys.appendChild(btn);});});
+}
+
+// --- CORE CALCULATION LOGIC ---
+
+function evaluateExpression(expr){
+// ... (Evaluation logic remains the same)
+try{
+    let safeExpr = expr.replace(/π/g,'Math.PI').replace(/e/g,'Math.E')
+        .replace(/√\(/g,'Math.sqrt(').replace(/ln\(/g,'Math.log(')
+        .replace(/log\(/g,'Math.log10(').replace(/\^/g,'**')
+        .replace(/sin\(/g,'Math.sin(').replace(/cos\(/g,'Math.cos(')
+        .replace(/tan\(/g,'Math.tan(')
+        .replace(/%/g,'/100')
+        .replace(/\|x\|/g,'Math.abs(x)');
+
+    if(currentMode==='programmer'){
+        safeExpr = safeExpr.replace(/AND/g,'&').replace(/OR/g,'|').replace(/XOR/g,'^').replace(/NOT/g,'~').replace(/<<|>>/g, (match) => { return match === '<<' ? '<<' : '>>' });
+        return Function('"use strict";return ('+safeExpr+')')()>>>0;
+    }
+
+    let result = Function('"use strict";return ('+safeExpr+')')();
+    return result;
+}catch(e){
+    console.error("Evaluation Error:", e);
+    return 'Error';
+}
+}
+
+// ... (Finance, Converter, Date, Stats calculation functions remain the same)
+function financeCalc(expr) {
+    const siMatch = expr.match(/SI\(([^,]+),\s*([^,]+),\s*([^)]+)\)/);
+    if (siMatch) {
+        const P = Number(evaluateExpression(siMatch[1]));
+        const R = Number(evaluateExpression(siMatch[2]));
+        const T = Number(evaluateExpression(siMatch[3]));
+        
+        if (isNaN(P) || isNaN(R) || isNaN(T) || P < 0 || R < 0 || T < 0) return 'Invalid Input';
+        
+        const A = P * (1 + (R / 100) * T);
+        return A.toFixed(2);
+    }
+
+    const ciMatch = expr.match(/CI\(([^,]+),\s*([^,]+),\s*([^,)]+)(?:,\s*([^)]+))?\)/);
+    if (ciMatch) {
+        const P = Number(evaluateExpression(ciMatch[1]));
+        const R = Number(evaluateExpression(ciMatch[2]));
+        const T = Number(evaluateExpression(ciMatch[3]));
+        const N = ciMatch[4] ? Number(evaluateExpression(ciMatch[4])) : 1;
+        
+        if (isNaN(P) || isNaN(R) || isNaN(T) || isNaN(N) || P < 0 || R < 0 || T < 0 || N < 1) return 'Invalid Input';
+        
+        const A = P * Math.pow((1 + (R / (100 * N))), (N * T));
+        return A.toFixed(2);
+    }
+
+    return 'Syntax Error: Use SI(...) or CI(...)';
+}
+
+function convertUnit(val){
+    const num = Number(expression);
+    let result = 'Error';
+    if(isNaN(num)) return result;
+
+    switch(val){
+        case 'km→m': result = num*1000; break;
+        case 'm→km': result = num/1000; break;
+        case 'kg→g': result = num*1000; break;
+        case 'g→kg': result = num/1000; break;
+        case '°C→°F': result = (num*9/5)+32; break;
+        case '°F→°C': result = (num-32)*5/9; break;
+        case 'L→mL': result = num*1000; break;
+        case 'mL→L': result = num/1000; break;
+        default: return;
+    }
+    resEl.textContent=result.toFixed(4).replace(/\.?0*$/, '');
+    pushHistory(expression + ' ' + val, resEl.textContent);
+    expression=resEl.textContent;
+}
+
+function dateCalc(op){
+    let result = 'Error';
+    if(op==='Today'){
+        const today=new Date().toISOString().slice(0,10);
+        result = today;
+        resEl.textContent=today; pushHistory('Today',today); expression=today.toString();
+    }
+    else if(op.startsWith('DaysBetween(')){
+        const dateString = expression.replace(/,$/, '');
+        const parts=dateString.split(',').map(d => d.trim()).filter(d => d.length > 0);
+        
+        if(parts.length===2){
+            const d1=new Date(parts[0]);
+            const d2=new Date(parts[1]);
+            if(isNaN(d1) || isNaN(d2)){
+                result = 'Invalid Date Format (YYYY-MM-DD,YYYY-MM-DD)';
+            } else {
+                const diff = Math.abs(d2.getTime()-d1.getTime())/(1000*60*60*24);
+                result = diff;
+                resEl.textContent=diff; pushHistory('DaysBetween('+parts.join(',')+')',diff); expression=diff.toString();
+            }
+        } else {
+            result = 'Format: YYYY-MM-DD,YYYY-MM-DD';
+        }
+        resEl.textContent = result;
+    }
+}
+
+function statsCalc(func){
+    const arr = expression.split(',').map(n => Number(n.trim())).filter(n => !isNaN(n));
+    if (arr.length === 0) {
+        resEl.textContent = 'Enter comma-separated numbers.';
+        return;
+    }
+    let result = 'Error';
+
+    if(func==='mean'){
+        result=arr.reduce((a,b)=>a+b,0)/arr.length;
+    }
+    else if(func==='median'){
+        arr.sort((a,b)=>a-b);
+        const mid=Math.floor(arr.length/2);
+        result=arr.length%2?arr[mid]:(arr[mid-1]+arr[mid])/2;
+    }
+    else if(func==='mode'){
+        const freq={}; let max=0; let mode=arr[0];
+        arr.forEach(n=>{freq[n]=(freq[n]||0)+1; if(freq[n]>max){max=freq[n]; mode=n;}});
+        result=mode;
+    }
+    else if(func==='std'){
+        const mean=arr.reduce((a,b)=>a+b,0)/arr.length;
+        result=Math.sqrt(arr.reduce((a,b)=>a+(b-mean)**2,0)/arr.length);
+    }
+    
+    resEl.textContent=typeof result === 'number' ? result.toFixed(4).replace(/\.?0*$/, '') : result;
+    pushHistory(func+'('+expression+')',resEl.textContent);
+    expression=resEl.textContent;
+}
+
+// --- GRAPH CALCULATION LOGIC ---
+function plotGraph(funcStr){
+    // ... (Graph plotting logic remains the same)
+    const classes = themeClasses[currentTheme];
+    const ctx = graphCanvas.getContext('2d');
+    
+    const dataPoints = [];
+    const minX = -10;
+    const maxX = 10;
+    const step = 0.1;
+    let func = null;
+
+    try{
+        const safeFuncStr = funcStr
+            .replace(/sin\(/g, 'Math.sin(')
+            .replace(/cos\(/g, 'Math.cos(')
+            .replace(/tan\(/g, 'Math.tan(')
+            .replace(/log\(/g, 'Math.log10(')
+            .replace(/ln\(/g, 'Math.log(')
+            .replace(/√\(/g, 'Math.sqrt(')
+            .replace(/\^/g,'**')
+            .replace(/e/g,'Math.E')
+            .replace(/π/g,'Math.PI');
+
+        func = Function('x', '"use strict"; return (' + safeFuncStr + ')');
+        
+        for(let x = minX; x <= maxX; x += step){
+            try {
+                let y = func(x);
+                if (isFinite(y)) {
+                    dataPoints.push({ x: x, y: y });
+                }
+            } catch (e) {
+                console.warn(`Skipping point at x=${x}:`, e);
+            }
+        }
+    } catch(e) {
+        console.error("Graph plotting error:", e);
+        resEl.textContent = 'Syntax Error in function!';
+        return;
+    }
+
+    if (dataPoints.length === 0) {
+        resEl.textContent = 'No valid data points found.';
+        return;
+    }
+
+    if(graphChart) graphChart.destroy();
+
+    graphChart = new Chart(ctx,{
+        type:'line',
+        data:{
+            datasets:[{
+                label:'f(x) = '+funcStr,
+                data:dataPoints,
+                borderColor: classes.chart_color,
+                backgroundColor: classes.chart_color.replace('0.8', '0.1'),
+                borderWidth:2,
+                pointRadius: 0,
+                fill:false,
+                tension: 0.1
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio: false,
+            scales:{
+                x:{
+                    type:'linear',
+                    position:'bottom',
+                    title:{display:true,text:'X Axis', color:classes.chart_text}, 
+                    grid: { color: classes.chart_grid },
+                    ticks:{color:classes.chart_text}
+                },
+                y:{
+                    title:{display:true,text:'Y Axis (f(x))', color:classes.chart_text}, 
+                    grid: { color: classes.chart_grid },
+                    ticks:{color:classes.chart_text}
+                }
+            },
+            plugins: {
+                legend: { labels: { color: classes.chart_text } },
+                tooltip: { bodyColor: classes.chart_text === 'white' ? 'black' : 'white', titleColor: classes.chart_text === 'white' ? 'black' : 'white', backgroundColor: classes.chart_text === 'white' ? 'white' : 'black' }
+            }
+        }
+    });
+
+    resEl.textContent = `Graph of f(x)=${funcStr} plotted.`;
+    pushHistory('Graph: f(x)='+funcStr, 'Plotted');
+}
+// --- END GRAPH CALCULATION LOGIC ---
+
+
+// --- MEMORY FUNCTIONALITY ---
+
+function handleMemory(op) {
+    let num = Number(resEl.textContent);
+
+    if (isNaN(num)) {
+        showToast('Invalid number in display for memory operation.', false);
+        return;
+    }
+
+    switch (op) {
+        case 'M+':
+            memory += num;
+            showToast(`Memory: M + ${num.toFixed(2)}`, true);
+            break;
+        case 'M-':
+            memory -= num;
+            showToast(`Memory: M - ${num.toFixed(2)}`, true);
+            break;
+        case 'MR':
+            expression += memory.toString();
+            resEl.textContent = memory.toString();
+            showToast(`Memory Recalled: ${memory.toFixed(2)}`, true);
+            break;
+        case 'MC':
+            memory = 0;
+            showToast('Memory Cleared (M=0)', true);
+            break;
+    }
+    // Update memory display if available (we are using toast for now)
+}
+
+// --- FIREBASE/CLOUD PERSISTENCE ---
+
+function setupFirestoreListeners(){
+    window.initFirebase((db, auth, userId) => {
+        firestoreDb = db;
+        currentUserId = userId;
+        
+        setupHistoryListener();
+        setupCustomListener();
+    });
+}
+
+// History Listener
+function setupHistoryListener() {
+    if (!firestoreDb || !currentUserId) return;
+    
+    const path = `artifacts/${appId}/users/${currentUserId}/history`;
+    const historyColRef = collection(firestoreDb, path);
+    // Query to get the latest 15 items, ordered by timestamp
+    const q = query(historyColRef); 
+
+    onSnapshot(q, (snapshot) => {
+        const historyData = [];
+        snapshot.forEach(doc => {
+            historyData.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Sort in memory by timestamp descending (newest first)
+        historyData.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
+        
+        // Store globally (for theme switch updates) and render only top 15
+        window.historyData = historyData.slice(0, 15);
+        renderHistory(window.historyData);
+
+    }, (error) => {
+        console.error("Error listening to history:", error);
+        document.getElementById('historyLoading').textContent = "Error loading history.";
+    });
+}
+
+function renderHistory(data) {
+    const classes = themeClasses[currentTheme];
+    historyEl.innerHTML = `
+        <h3 class="font-semibold mb-2 ${classes.text}">Calculation History (Cloud)</h3>
+        ${data.length > 0 ? '' : `<p class="text-xs ${classes.hint} mt-1" id="historyLoading">No history saved yet.</p>`}
+    `;
+    
+    if (data.length > 0) {
+        data.forEach(item => {
+            const itemElement = document.createElement('div');
+            itemElement.className = `history-item flex justify-between p-2 rounded-md cursor-pointer transition duration-100 ${currentTheme === 'dark' ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-500 hover:bg-gray-100'}`;
+            itemElement.innerHTML = `
+                <span class="truncate">${item.expression}</span>
+                <strong class="${classes.result}">${item.result}</strong>
+            `;
+            itemElement.onclick = () => {
+                expression = item.expression;
+                resEl.textContent = item.result;
+                render();
+            };
+            historyEl.appendChild(itemElement);
+        });
+    } else {
+        document.getElementById('historyLoading').textContent = "No history saved yet.";
+    }
+}
+
+async function pushHistory(expr, result){
+    if (!firestoreDb || !currentUserId || expr === '0' || result === 'Error') return;
+
+    try {
+        const path = `artifacts/${appId}/users/${currentUserId}/history`;
+        await addDoc(collection(firestoreDb, path), {
+            expression: expr,
+            result: result,
+            timestamp: serverTimestamp()
+        });
+    } catch (e) {
+        console.error("Error adding history: ", e);
+        showToast('History Save Failed!', false);
+    }
+}
+
+// Custom Calc Listener (copied from previous logic)
+function setupCustomListener() {
+    if (!firestoreDb || !currentUserId) return;
+
+    const path = `artifacts/${appId}/users/${currentUserId}/custom_calculations`;
+    const customColRef = collection(firestoreDb, path);
+    const q = query(customColRef);
+
+    onSnapshot(q, (snapshot) => {
+        customCalculations = [];
+        snapshot.forEach(doc => {
+            customCalculations.push({ id: doc.id, ...doc.data() });
+        });
+        customCalculations.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
+        renderCustomList();
+    }, (error) => {
+        console.error("Error listening to custom calculations:", error);
+        document.getElementById('customEmpty').textContent = "Error loading saved data.";
+    });
+}
+
+function renderCustomList() {
+    const classes = themeClasses[currentTheme];
+    customListEl.innerHTML = `
+        <h3 class="font-semibold mb-2 ${classes.result}">Saved Custom Calculations (Cloud)</h3>
+        ${customCalculations.length > 0 ? '' : `<p class="text-xs ${classes.hint} mt-1" id="customEmpty">No custom calculations saved yet.</p>`}
+    `;
+    
+    if (customCalculations.length > 0) {
+        customCalculations.forEach(item => {
+            const li = document.createElement('div');
+            li.className = `history-item flex justify-between p-2 rounded-lg cursor-pointer transition duration-100 ${currentTheme === 'dark' ? 'text-gray-300 hover:bg-gray-900' : 'text-gray-700 hover:bg-gray-100'}`;
+            li.innerHTML = `
+                <span class="truncate">${item.expression}</span>
+                <span class="${classes.result} font-medium">${item.result}</span>
+            `;
+            li.onclick = () => {
+                expression = item.expression;
+                resEl.textContent = item.result;
+                render();
+            };
+            customListEl.appendChild(li);
+        });
+    }
+}
+
+async function customSave(){
+    if (!firestoreDb || !currentUserId) {
+        showToast('Cloud save is not ready.', false);
+        return;
+    }
+    if (!expression || resEl.textContent === '0' || resEl.textContent === 'Error') {
+        showToast('No valid calculation to save.', false);
+        return;
+    }
+    try {
+        const path = `artifacts/${appId}/users/${currentUserId}/custom_calculations`;
+        await addDoc(collection(firestoreDb, path), {
+            expression: expression,
+            result: resEl.textContent,
+            timestamp: serverTimestamp()
+        });
+        showToast('Custom Formula Saved!', true);
+    } catch (e) {
+        console.error("Error adding document: ", e);
+        showToast('Save Failed!', false);
+    }
+}
+
+// --- UI Rendering and Event Handlers ---
+
+function render(){
+    exprEl.textContent=expression||'0';
+    
+    const keyboardHint = document.querySelector('.hint');
+    keyboardHint.classList.remove('text-violet-400', 'text-emerald-400', 'text-gray-500', 'text-gray-600', 'text-emerald-700', 'text-violet-700'); 
+    
+    // Set colors based on current theme for dynamic hints
+    const hintColorClass = currentTheme === 'dark' ? 'text-gray-500' : 'text-gray-600';
+    const violetColorClass = currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700';
+    const emeraldColorClass = currentTheme === 'dark' ? 'text-emerald-400' : 'text-emerald-700';
+
+
+    if (currentMode === 'finance') {
+        keyboardHint.textContent = 'Syntax: SI(Principal, Rate%, Time) or CI(P, R%, T, n). Press =';
+        keyboardHint.classList.add(violetColorClass);
+    } else if (currentMode === 'graph') {
+        keyboardHint.textContent = 'Syntax: Enter f(x) using x. E.g., x*x+3 or sin(x). Press Plot.';
+        keyboardHint.classList.add(emeraldColorClass);
+    } else {
+        keyboardHint.textContent = 'Keyboard supported: 0–9, + - * / ( ) . Enter, Backspace, Esc';
+        keyboardHint.classList.add(hintColorClass);
+    }
+
+
+    if(currentMode==='custom') {
+        customListEl.classList.remove('hidden');
+        historyEl.classList.add('hidden');
+    } else {
+        customListEl.classList.add('hidden');
+        historyEl.classList.remove('hidden');
+    }
+
+    const isGraph = currentMode==='graph';
+    graphContainer.classList.toggle('hidden', !isGraph);
+}
+
+keys.addEventListener('click',e=>{
+const btn=e.target.closest('button'); if(!btn)return;
+const val=btn.dataset.value; const action=btn.dataset.action;
+
+if(action==='clear'){expression=''; resEl.textContent='0'; render(); return;}
+if(action==='back'){expression=expression.slice(0,-1); render(); return;}
+if(action==='memory'){handleMemory(val); render(); return;}
+
+if(val==='Plot'){if(expression.trim()===''){ resEl.textContent = 'Enter function first!'; return; } plotGraph(expression); return;}
+
+if(action==='equals'){
+    let res = '';
+    
+    if (currentMode === 'finance') {
+        res = financeCalc(expression);
+    } else if (currentMode === 'stats' || currentMode === 'date' || currentMode === 'graph') {
+        res = 'Error: Use function buttons.'; 
+    } else {
+        res = evaluateExpression(expression||'0');
+    }
+
+    if (res === 'Error' || res.toString().includes('Error') || isNaN(res) && typeof res !== 'string' || res.toString().includes('Syntax Error')) {
+        resEl.textContent = res.toString().includes('Error') ? res.toString() : 'Error';
+    } else {
+        resEl.textContent = typeof res === 'number' ? res.toFixed(8).replace(/\.?0*$/, '') : res.toString();
+    }
+    
+    if(resEl.textContent!=='Error' && expression && !resEl.textContent.includes('Error')){
+        pushHistory(expression,resEl.textContent); 
+    }
+    expression=resEl.textContent.includes('Error') ? '' : resEl.textContent.toString(); 
+    render(); 
+    return;
+}
+
+if(currentMode==='converter'){convertUnit(val); return;}
+if(currentMode==='finance' && (val.endsWith('(') || val===',' || val===')' || ['SI','CI'].includes(val.slice(0,-1)))){ expression+=val; render(); return;} 
+if(currentMode==='stats' && ['mean','median','mode','std'].includes(val)){ statsCalc(val); return;}
+if(currentMode==='date' && (val.endsWith('(') || val === 'Today')){ dateCalc(val); return;}
+if(currentMode==='custom' && val==='Save'){customSave(); return;}
+
+
+expression+=val; render();
+});
+
+window.addEventListener('keydown',e=>{
+const allowed='0123456789+-*/().%,x';
+if(e.key==='Enter'){e.preventDefault();document.querySelector('[data-action="equals"]')?.click();return;}
+if(e.key==='Escape'){expression='';resEl.textContent='0';render();return;}
+if(e.key==='Backspace'){expression=expression.slice(0,-1);render();return;}
+if(allowed.includes(e.key)){expression+=e.key;render();}
+});
+
+copyBtn.addEventListener('click',()=>{
+    // Use execCommand for better compatibility inside iframes
+    const tempInput = document.createElement('textarea');
+    tempInput.value = resEl.textContent;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    try {
+        document.execCommand('copy');
+        showToast('Result Copied to Clipboard!', true);
+    } catch (err) {
+        showToast('Copy Failed!', false);
+        console.error('Could not copy text: ', err);
+    }
+    document.body.removeChild(tempInput);
+});
+
+sidebarToggle.addEventListener('click', toggleSidebarWidth);
+
+sidebar.addEventListener('click',e=>{
+const btn=e.target.closest('button.menu-btn'); if(!btn)return;
+keys.style.opacity = '0'; keys.style.transform = 'translateY(10px)';
+
+if (graphChart) { graphChart.destroy(); graphChart = null; }
+
+setTimeout(() => {
+    const classes = themeClasses[currentTheme];
+    sidebar.querySelectorAll('button').forEach(b=>{
+        b.classList.remove('active', classes.menu_active);
+        b.classList.add(classes.menu_btn);
+    });
+    btn.classList.add('active', classes.menu_active); 
+    currentMode=btn.dataset.mode; expression=''; resEl.textContent='0'; renderKeys(currentMode);
+    
+    keys.style.opacity = '1'; keys.style.transform = 'translateY(0)';
+    render();
+}, 200);
+});
+
+
+// Initialization
+renderKeys('standard');
+setupFirestoreListeners(); // Initialize all listeners
+// Apply default dark theme on load
+applyTheme('dark');
+initializeSidebarState(); // Set initial state based on screen size
+})();
+</script>
+
 </body>
 </html>
