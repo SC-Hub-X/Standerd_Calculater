@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sadew Pro 10-Mode Calculator (Animated)</title>
+<title>Sadew Pro Voice & AI Calculator (Upgraded)</title>
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- Firebase SDKs -->
@@ -22,7 +22,6 @@
   let isFirebaseReady = false;
 
   if (firebaseConfig) {
-      // setLogLevel('debug'); // Uncomment for debugging
       const app = initializeApp(firebaseConfig);
       db = getFirestore(app);
       auth = getAuth(app);
@@ -70,16 +69,18 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
   50% { transform: scale(1.3) rotate(-10deg); }
   100% { transform: scale(1) rotate(0deg); }
 }
-.icon-animate {
-    animation: icon-pop 0.3s ease-in-out;
-}
+.icon-animate { animation: icon-pop 0.3s ease-in-out; }
 @keyframes result-fade-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.result-animate {
-    animation: result-fade-in 0.3s ease-out;
+.result-animate { animation: result-fade-in 0.3s ease-out; }
+@keyframes mic-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
+.mic-active { animation: mic-pulse 1.5s infinite; }
 
 /* --- BASE & COMMON STYLES --- */
 #sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); } 
@@ -90,14 +91,13 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 #keys { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
 .menu-btn { transition: background-color 0.2s, color 0.2s, transform 0.1s; }
 
-/* Scrollbar styles (Default Dark Mode) */
-.sidebar::-webkit-scrollbar, #keys::-webkit-scrollbar, #history::-webkit-scrollbar, #customList::-webkit-scrollbar { width: 8px; height: 8px; }
+/* Scrollbar styles */
+.sidebar::-webkit-scrollbar, #keys::-webkit-scrollbar, #history::-webkit-scrollbar, #customList::-webkit-scrollbar { width: 8px; }
 .sidebar::-webkit-scrollbar-track, #keys::-webkit-scrollbar-track, #history::-webkit-scrollbar-track, #customList::-webkit-scrollbar-track { background: #111827; border-radius: 4px; }
 .sidebar::-webkit-scrollbar-thumb, #keys::-webkit-scrollbar-thumb, #history::-webkit-scrollbar-thumb, #customList::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 4px; }
 .sidebar::-webkit-scrollbar-thumb:hover, #keys::-webkit-scrollbar-thumb:hover, #history::-webkit-scrollbar-thumb:hover, #customList::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
 
 /* --- THEME SPECIFIC STYLES --- */
-
 /* DARK MODE (Default) */
 .body-dark { background-color: #030712; color: white; }
 .sidebar-dark { background-color: #111827; }
@@ -117,13 +117,7 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 .hint-dark { color: #6b7280; }
 .graph-border-dark { border-color: #374151; }
 .graph-bg-dark { background-color: #111827; }
-.frame-dark {
-    background: rgba(17, 24, 32, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
+.frame-dark { background: rgba(17, 24, 32, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
 
 /* LIGHT MODE */
 .body-light { background-color: #f9fafb; color: #1f2937; }
@@ -144,65 +138,29 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 .hint-light { color: #9ca3af; }
 .graph-border-light { border-color: #d1d5db; }
 .graph-bg-light { background-color: #ffffff; }
-.frame-light {
-    background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(12px);
-     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-}
+.frame-light { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1); }
 
-/* Overriding Scrollbar for Light Mode */
 .body-light .sidebar::-webkit-scrollbar-track, .body-light #keys::-webkit-scrollbar-track, .body-light #history::-webkit-scrollbar-track, .body-light #customList::-webkit-scrollbar-track { background: #e5e7eb; }
 .body-light .sidebar::-webkit-scrollbar-thumb, .body-light #keys::-webkit-scrollbar-thumb, .body-light #history::-webkit-scrollbar-thumb, .body-light #customList::-webkit-scrollbar-thumb { background: #8b5cf6; }
 
 /* Toast Notification Styles */
-#toastContainer {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    pointer-events: none;
-}
-.toast {
-    padding: 12px 20px;
-    margin-top: 8px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-    transform: translateY(20px);
-}
+#toastContainer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; pointer-events: none; }
+.toast { padding: 12px 20px; margin-top: 8px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); opacity: 0; transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; transform: translateY(20px); }
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast-success { background-color: #10b981; color: white; }
 .toast-error { background-color: #ef4444; color: white; }
+.toast-info { background-color: #3b82f6; color: white; }
 
 /* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 768px) {
-    .main {
-        padding: 1rem;
-    }
-    #waterFrame {
-        padding: 0.5rem;
-        max-height: 95vh; /* Prevent overflow on short screens */
-    }
-    #calculator {
-        padding: 1rem;
-    }
-    .keys {
-        gap: 0.6rem; /* Tighter gap on mobile */
-    }
-    .key {
-        padding: 0.8rem; /* Better touch targets */
-        font-size: 1.25rem; /* Larger font */
-    }
-    .display {
-        min-height: 80px;
-    }
-    .result {
-        font-size: 2.2rem;
-    }
+    .main { padding: 1rem; }
+    #waterFrame { padding: 0.5rem; max-height: 95vh; }
+    #calculator { padding: 1rem; }
+    .keys { gap: 0.6rem; }
+    .key { padding: 0.8rem; font-size: 1.25rem; }
+    .display { min-height: 80px; }
+    .result { font-size: 2.2rem; }
+    #topControls { flex-direction: column; align-items: flex-end; gap: 0.5rem; }
 }
 
 </style>
@@ -213,65 +171,18 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 <!-- TOAST NOTIFICATION CONTAINER -->
 <div id="toastContainer"></div>
 
-<!-- SIDEBAR (Adaptive Width controlled by JS) -->
+<!-- SIDEBAR -->
 <div class="sidebar w-16 sidebar-dark flex flex-col py-3 overflow-y-auto transition-all duration-300 shadow-xl" id="sidebar">
-    <!-- Header with Toggle Button -->
     <div class="p-3 mb-2 font-bold text-lg text-violet-400 flex items-center justify-center space-x-2" id="sidebarHeader">
         <span class="hidden" id="sidebarTitle">Calculator Modes</span>
-        <!-- Toggle Button for Mobile/Desktop View -->
         <button id="sidebarToggle" class="p-1 rounded-full text-violet-300 hover:bg-violet-600 hover:text-white transition duration-200" aria-label="Toggle Sidebar Width">
             <svg id="toggleIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
     </div>
-    
-    <!-- User ID Display (Hidden when collapsed) -->
     <div class="p-3 mb-4 text-xs text-gray-400 break-words hidden" id="userIdDisplay">Loading User...</div>
-    
-    <!-- Menu Items -->
     <div id="menuContainer" class="flex flex-col">
-        <button class="menu-btn active menu-btn-active-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 transition duration-150 rounded-r-full" data-mode="standard">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            <span class="hidden menu-label">Standard Mode</span>
-        </button>
-        <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="scientific">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 11h2m10 0h2M3 15h4m10 0h4M2 12l2-2h16l2 2M16 4h4v4h-4zM8 12h8v8H8z"></path></svg>
-            <span class="hidden menu-label">Scientific Mode</span>
-        </button>
-        <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="programmer">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-            <span class="hidden menu-label">Programmer Mode</span>
-        </button>
-        <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="date">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            <span class="hidden menu-label">Date Mode</span>
-        </button>
-        <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="finance">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            <span class="hidden menu-label">Finance Mode</span>
-        </button>
-        <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="stats">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 6-6M4 21h16a2 2 0 002-2V5a2 2 0 00-2-2H4a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-            <span class="hidden menu-label">Statistics Mode</span>
-        </button>
-        <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="matrix">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-            <span class="hidden menu-label">Matrix Mode</span>
-        </button>
-        <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="converter">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 12l-4-4m4 4v-4m0 4l4-4"></path></svg>
-            <span class="hidden menu-label">Converter Mode</span>
-        </button>
-        <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="graph">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-            <span class="hidden menu-label">Graph Mode</span>
-        </button>
-        <button class="menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full" data-mode="custom">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-            <span class="hidden menu-label">Custom Mode (Cloud)</span>
-        </button>
+        <!-- Menu items will be inserted here -->
     </div>
-
-    <!-- Creator Credit -->
     <div class="mt-auto p-3 text-center hidden" id="creatorCredit">
         <p class="text-xs hint-dark">© 2025 Sadew Chamathsara</p>
     </div>
@@ -279,11 +190,15 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 
 <div class="main flex-1 flex justify-center items-center p-4 md:p-10 h-screen relative">
     
-    <!-- Theme Toggle Button -->
-    <button id="themeToggleBtn" class="absolute top-4 right-4 md:top-10 md:right-10 p-3 rounded-full shadow-lg transition duration-200" aria-label="Toggle Dark/Light Mode">
-        <svg id="moonIcon" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.903A7.5 7.5 0 0110 15a7.5 7.5 0 01-7.293-8.097 8 8 0 0014.586 8.097z"></path></svg>
-        <svg id="sunIcon" class="w-6 h-6 text-yellow-500 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 4.364a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707zM3 10a1 1 0 011-1h1a1 1 0 110 2H4a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-4.95-.5a1 1 0 00-1.414 0l-.707.707a1 1 0 101.414 1.414l.707-.707a1 1 0 000-1.414zM4 15a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-9.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 15.636a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707z" clip-rule="evenodd"></path></svg>
-    </button>
+    <div id="topControls" class="absolute top-4 right-4 md:top-10 md:right-10 flex items-center space-x-3 z-10">
+        <button id="voiceBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800" aria-label="Activate Voice Command">
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v2a3 3 0 01-3 3z"></path></svg>
+        </button>
+        <button id="themeToggleBtn" class="p-3 rounded-full shadow-lg transition duration-200" aria-label="Toggle Dark/Light Mode">
+            <svg id="moonIcon" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.903A7.5 7.5 0 0110 15a7.5 7.5 0 01-7.293-8.097 8 8 0 0014.586 8.097z"></path></svg>
+            <svg id="sunIcon" class="w-6 h-6 text-yellow-500 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 4.364a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707zM3 10a1 1 0 011-1h1a1 1 0 110 2H4a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-4.95-.5a1 1 0 00-1.414 0l-.707.707a1 1 0 101.414 1.414l.707-.707a1 1 0 000-1.414zM4 15a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-9.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 15.636a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707z" clip-rule="evenodd"></path></svg>
+        </button>
+    </div>
 
     <!-- MAIN CALCULATOR FRAME -->
     <div id="waterFrame" class="frame-dark shadow-2xl rounded-3xl p-2 md:p-3 flex flex-col h-full w-full max-w-lg md:max-w-xl transition-all duration-300">
@@ -292,8 +207,7 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
                 <div class="expr text-sm break-all expr-dark text-right" id="expression">0</div>
                 <div class="result text-4xl font-bold mt-1 text-right result-dark" id="result">0</div>
             </div>
-
-            <!-- Graph Container (Now centrally managed) -->
+            
             <div id="graphContainer" class="hidden flex-1 mb-4">
                 <canvas id="graphCanvas" class="w-full h-full rounded-xl border graph-border-dark graph-bg-dark"></canvas>
             </div>
@@ -306,14 +220,11 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
             </div>
             
             <div class="history mt-4 max-h-40 overflow-y-auto text-sm border-t border-gray-700 pt-3" id="history" aria-live="polite">
-                <h3 class="font-semibold mb-2 text-dark">Calculation History (Cloud)</h3>
-                <p class="text-xs hint-dark mt-1" id="historyLoading">Loading history from cloud...</p>
                 <!-- History items will be inserted here -->
             </div>
             
             <div id="customList" class="hidden mt-4 max-h-60 overflow-y-auto text-sm border-t border-gray-700 pt-3">
-                <h3 class="font-semibold mb-2 result-dark">Saved Custom Calculations (Cloud)</h3>
-                <p class="text-xs hint-dark mt-1" id="customEmpty">No custom calculations saved yet.</p>
+                <!-- Custom list items will be inserted here -->
             </div>
         </main>
     </div>
@@ -322,26 +233,30 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 <script>
 // Main calculator logic
 (function(){
-const appBody = document.getElementById('appBody');
-const exprEl=document.getElementById('expression');
-const resEl=document.getElementById('result');
-const keys=document.getElementById('keys');
-const historyEl=document.getElementById('history');
-const customListEl=document.getElementById('customList');
-const copyBtn=document.getElementById('copyBtn');
-const sidebar=document.getElementById('sidebar');
-const menuContainer = document.getElementById('menuContainer');
-const sidebarToggle = document.getElementById('sidebarToggle');
-const waterFrame=document.getElementById('waterFrame');
-const graphContainer=document.getElementById('graphContainer');
-const graphCanvas = document.getElementById('graphCanvas');
-const themeToggleBtn = document.getElementById('themeToggleBtn');
-const moonIcon = document.getElementById('moonIcon');
-const sunIcon = document.getElementById('sunIcon');
-const toastContainer = document.getElementById('toastContainer');
+// --- ELEMENT SELECTORS ---
+const getEl = (id) => document.getElementById(id);
+const appBody = getEl('appBody');
+const exprEl = getEl('expression');
+const resEl = getEl('result');
+const keys = getEl('keys');
+const historyEl = getEl('history');
+const customListEl = getEl('customList');
+const copyBtn = getEl('copyBtn');
+const sidebar = getEl('sidebar');
+const menuContainer = getEl('menuContainer');
+const sidebarToggle = getEl('sidebarToggle');
+const waterFrame = getEl('waterFrame');
+const graphContainer = getEl('graphContainer');
+const graphCanvas = getEl('graphCanvas');
+const themeToggleBtn = getEl('themeToggleBtn');
+const moonIcon = getEl('moonIcon');
+const sunIcon = getEl('sunIcon');
+const toastContainer = getEl('toastContainer');
+const voiceBtn = getEl('voiceBtn');
 
-let expression='';
-let currentMode='standard';
+// --- STATE VARIABLES ---
+let expression = '';
+let currentMode = 'standard';
 let customCalculations = [];
 let currentTheme = 'dark';
 let graphChart = null;
@@ -349,55 +264,38 @@ let memory = 0;
 let isSidebarExpanded = false; 
 let firestoreDb = null;
 let currentUserId = null;
+let recognition;
+let isListening = false;
 
+// --- MENU & LAYOUT DATA ---
+const menuItems = [
+    { mode: 'standard', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>`, label: 'Standard' },
+    { mode: 'ai', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13.18v4.24a2 2 0 001.106 1.79l4.588 2.294a2 2 0 001.812 0l4.588-2.294A2 2 0 0019 17.42V13.18M12 15.41v-5.8M12 3.12A2.25 2.25 0 0010.06 1.5H9.75a2.25 2.25 0 00-2.25 2.25v.49a2.25 2.25 0 00.182 1.01l.01.02.002.003a2.25 2.25 0 003.88 1.01l.01-.02.002-.003A2.25 2.25 0 0014.25 4.24v-.49A2.25 2.25 0 0012 1.5v0Z"></path></svg>`, label: 'AI Calculate' },
+    { mode: 'scientific', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 11h2m10 0h2M3 15h4m10 0h4M2 12l2-2h16l2 2M16 4h4v4h-4zM8 12h8v8H8z"></path></svg>`, label: 'Scientific' },
+    { mode: 'programmer', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>`, label: 'Programmer' },
+    { mode: 'graph', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>`, label: 'Graph' },
+    { mode: 'converter', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16a4 4 0 100-8 4 4 0 000 8zm0-12v1m0 14v1m-7-8h1m14 0h1M5.636 5.636l.707.707m12.728 12.728l.707.707M5.636 18.364l.707-.707m12.728-12.728l.707-.707"></path></svg>`, label: 'Converter' },
+    { mode: 'finance', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>`, label: 'Finance' },
+    { mode: 'date', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`, label: 'Date' },
+    { mode: 'custom', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>`, label: 'Custom (Cloud)' },
+];
 
-// --- SIDEBAR TOGGLE ---
-function toggleSidebarWidth() {
-    isSidebarExpanded = !isSidebarExpanded;
-    const titleEl = document.getElementById('sidebarTitle');
-    const userIdDisplay = document.getElementById('userIdDisplay');
-    const toggleIcon = document.getElementById('toggleIcon');
-    const menuLabels = document.querySelectorAll('.menu-label');
-    const menuBtns = document.querySelectorAll('.menu-btn');
-    const sidebarHeader = document.getElementById('sidebarHeader');
-    const creatorCredit = document.getElementById('creatorCredit');
+const layouts = {
+    standard: [['MC', 'MR', 'M+', 'M-'], ['C', '⌫', '%', '/'], ['7', '8', '9', '*'], ['4', '5', '6', '-'], ['1', '2', '3', '+'], ['0', '.', '√(', '=']],
+    ai: [['C', '⌫', '%', '/'], ['7', '8', '9', '*'], ['4', '5', '6', '-'], ['1', '2', '3', '+'], ['0', '.', '(', ')'], ['Ask AI']],
+    scientific: [['Deg', 'Rad'],['sin(', 'cos(', 'tan(', 'ln(', 'log('], ['C', '⌫', '(', ')', '^'], ['√(','x²', '1/x', '7', '8', '9', '/'], ['π', 'e', '|x|', '4', '5', '6', '*'], ['1', '2', '3', '-', '+'], ['0', '.', '+/-', '=']],
+    programmer: [['C', '⌫', 'DEC', 'HEX', 'BIN', 'OCT'], ['AND', 'OR', 'NOT', 'XOR', '<<', '>>'], ['7', '8', '9', '/'], ['4', '5', '6', '*'], ['1', '2', '3', '-'], ['A', 'B', 'C', '+'], ['D', 'E', 'F', '='], ['0', '.']],
+    converter: [['C', '⌫', 'km→m', 'm→km'], ['kg→g', 'g→kg', '°C→°F', '°F→°C'], ['L→mL', 'mL→L']],
+    finance: [['C', '⌫', '%', 'SI('], ['7', '8', '9', '/'], ['4', '5', '6', '*'], ['1', '2', '3', '-'], ['0', '.', 'CI('], [',', ')', '=']],
+    date: [['C', '⌫', 'Today', 'DaysBetween('],['7','8','9','-'],['4','5','6','/'],['1','2','3','+'],['0',',','.','=']],
+    graph: [['C', '⌫', '(', ')', '^'], ['x', 'sin(', 'cos(', 'tan('], ['√(', 'ln(', 'log(', '/'], ['7', '8', '9', '*'], ['4', '5', '6', '-'], ['1', '2', '3', '+'], ['0', '.', 'Plot']],
+    custom: [['C', '⌫', 'Save', 'Load']]
+};
 
-    if (isSidebarExpanded) {
-        sidebar.classList.remove('w-16');
-        sidebar.classList.add('w-56');
-        titleEl.classList.remove('hidden');
-        userIdDisplay.classList.remove('hidden');
-        creatorCredit.classList.remove('hidden');
-        sidebarHeader.classList.remove('justify-center');
-        sidebarHeader.classList.add('justify-between');
-        menuLabels.forEach(s => s.classList.remove('hidden'));
-        menuBtns.forEach(b => { b.classList.remove('justify-center'); b.classList.add('justify-start'); });
-        toggleIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>`;
-    } else {
-        sidebar.classList.remove('w-56');
-        sidebar.classList.add('w-16');
-        titleEl.classList.add('hidden');
-        userIdDisplay.classList.add('hidden');
-        creatorCredit.classList.add('hidden');
-        sidebarHeader.classList.remove('justify-between');
-        sidebarHeader.classList.add('justify-center');
-        menuLabels.forEach(s => s.classList.add('hidden'));
-        menuBtns.forEach(b => { b.classList.remove('justify-start'); b.classList.add('justify-center'); });
-        toggleIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>`;
-    }
-}
-
-function initializeSidebarState() {
-    if (window.innerWidth >= 768) {
-        isSidebarExpanded = false; 
-        toggleSidebarWidth();
-    }
-}
-
-// --- TOAST NOTIFICATIONS ---
-function showToast(message, isSuccess = true) {
+// --- UI & THEME ---
+function showToast(message, type = 'success') { // types: success, error, info
     const toast = document.createElement('div');
-    toast.className = `toast ${isSuccess ? 'toast-success' : 'toast-error'} text-sm font-medium`;
+    toast.className = `toast toast-${type} text-sm font-medium`;
     toast.textContent = message;
     toastContainer.prepend(toast);
     setTimeout(() => { toast.classList.add('show'); }, 10);
@@ -407,61 +305,28 @@ function showToast(message, isSuccess = true) {
     }, 3000);
 }
 
-
-// --- THEME MANAGEMENT ---
 const themeClasses = {
-    dark: {
-        body: 'body-dark', sidebar: 'sidebar-dark', calc: 'calc-dark', display: 'display-dark',
-        expr: 'expr-dark', result: 'result-dark', text: 'text-dark', copy: 'key-action-dark',
-        key_normal: 'key-normal-dark', key_action: 'key-action-dark', key_equals: 'key-equals-dark', 
-        key_func: 'key-func-dark', key_op: 'key-op-dark', menu_btn: 'menu-btn-dark', 
-        menu_active: 'menu-btn-active-dark', history_hover: 'history-item-dark:hover', 
-        hint: 'hint-dark', graph_border: 'graph-border-dark', graph_bg: 'graph-bg-dark',
-        chart_color: 'rgba(139, 92, 246, 0.8)', chart_text: 'white', chart_grid: 'rgba(255, 255, 255, 0.1)',
-        frame: 'frame-dark',
-    },
-    light: {
-        body: 'body-light', sidebar: 'sidebar-light', calc: 'calc-light', display: 'display-light',
-        expr: 'expr-light', result: 'result-light', text: 'text-light', copy: 'key-action-light',
-        key_normal: 'key-normal-light', key_action: 'key-action-light', key_equals: 'key-equals-light', 
-        key_func: 'key-func-light', key_op: 'key-op-light', menu_btn: 'menu-btn-light', 
-        menu_active: 'menu-btn-active-light', history_hover: 'history-item-light:hover', 
-        hint: 'hint-light', graph_border: 'graph-border-light', graph_bg: 'graph-bg-light',
-        chart_color: 'rgba(124, 58, 237, 1)', chart_text: '#1f2937', chart_grid: 'rgba(0, 0, 0, 0.1)',
-        frame: 'frame-light',
-    }
+    dark: { body: 'body-dark', sidebar: 'sidebar-dark', calc: 'calc-dark', display: 'display-dark', expr: 'expr-dark', result: 'result-dark', text: 'text-dark', copy: 'key-action-dark', key_normal: 'key-normal-dark', key_action: 'key-action-dark', key_equals: 'key-equals-dark', key_func: 'key-func-dark', key_op: 'key-op-dark', menu_btn: 'menu-btn-dark', menu_active: 'menu-btn-active-dark', hint: 'hint-dark', graph_border: 'graph-border-dark', graph_bg: 'graph-bg-dark', chart_color: 'rgba(139, 92, 246, 0.8)', chart_text: 'white', chart_grid: 'rgba(255, 255, 255, 0.1)', frame: 'frame-dark' },
+    light: { body: 'body-light', sidebar: 'sidebar-light', calc: 'calc-light', display: 'display-light', expr: 'expr-light', result: 'result-light', text: 'text-light', copy: 'key-action-light', key_normal: 'key-normal-light', key_action: 'key-action-light', key_equals: 'key-equals-light', key_func: 'key-func-light', key_op: 'key-op-light', menu_btn: 'menu-btn-light', menu_active: 'menu-btn-active-light', hint: 'hint-light', graph_border: 'graph-border-light', graph_bg: 'graph-bg-light', chart_color: 'rgba(124, 58, 237, 1)', chart_text: '#1f2937', chart_grid: 'rgba(0, 0, 0, 0.1)', frame: 'frame-light' }
 };
 
 function applyTheme(theme) {
-    const isDark = theme === 'dark';
     const classes = themeClasses[theme];
-    const oppositeClasses = themeClasses[isDark ? 'light' : 'dark'];
+    const oppositeClasses = themeClasses[theme === 'dark' ? 'light' : 'dark'];
 
-    // Function to replace classes on a single element
-    const swapClasses = (el, prop) => {
-        el.classList.remove(oppositeClasses[prop]);
-        el.classList.add(classes[prop]);
-    };
-
-    swapClasses(appBody, 'body');
-    swapClasses(sidebar, 'sidebar');
-    swapClasses(waterFrame, 'frame');
-    swapClasses(calculator, 'calc');
-    swapClasses(document.querySelector('.display'), 'display');
-    swapClasses(exprEl, 'expr');
-    swapClasses(resEl, 'result');
-    swapClasses(historyEl.querySelector('h3'), 'text');
-    swapClasses(customListEl.querySelector('h3'), 'result');
-    document.querySelectorAll('.hint').forEach(el => swapClasses(el, 'hint'));
-    swapClasses(document.querySelector('#creatorCredit p'), 'hint');
-    swapClasses(copyBtn, 'copy');
+    const swapClass = (el, prop) => el && el.classList.replace(oppositeClasses[prop], classes[prop]);
+    
+    swapClass(appBody, 'body'); swapClass(sidebar, 'sidebar'); swapClass(waterFrame, 'frame'); swapClass(calculator, 'calc');
+    swapClass(document.querySelector('.display'), 'display'); swapClass(exprEl, 'expr'); swapClass(resEl, 'result');
+    if(historyEl.querySelector('h3')) swapClass(historyEl.querySelector('h3'), 'text');
+    if(customListEl.querySelector('h3')) swapClass(customListEl.querySelector('h3'), 'result');
+    swapClass(copyBtn, 'copy');
+    document.querySelectorAll('.hint').forEach(el => swapClass(el, 'hint'));
     
     document.querySelectorAll('.menu-btn').forEach(btn => {
         btn.classList.remove(oppositeClasses.menu_btn, oppositeClasses.menu_active);
         btn.classList.add(classes.menu_btn);
-        if (btn.classList.contains('active')) {
-            btn.classList.add(classes.menu_active);
-        }
+        if (btn.classList.contains('active')) btn.classList.add(classes.menu_active);
     });
 
     graphCanvas.classList.remove(oppositeClasses.graph_border, oppositeClasses.graph_bg);
@@ -470,442 +335,371 @@ function applyTheme(theme) {
     renderKeys(currentMode);
     
     if (currentMode === 'graph' && expression.trim() !== '' && graphChart) {
-        graphChart.destroy();
-        graphChart = null;
-        plotGraph(expression);
+        plotGraph(expression); // Re-plot with new theme colors
     }
     
-    renderHistory(window.historyData || []);
-    renderCustomList();
+    renderHistory(window.historyData || []); renderCustomList();
 
-    if (isDark) {
-        moonIcon.classList.remove('hidden');
-        sunIcon.classList.add('hidden');
-        themeToggleBtn.classList.remove('bg-gray-200');
-        themeToggleBtn.classList.add('bg-gray-800');
+    if (theme === 'dark') {
+        moonIcon.classList.remove('hidden'); sunIcon.classList.add('hidden');
+        themeToggleBtn.classList.add('bg-gray-800'); themeToggleBtn.classList.remove('bg-gray-200');
+        voiceBtn.classList.add('bg-gray-800'); voiceBtn.classList.remove('bg-gray-200');
     } else {
-        moonIcon.classList.add('hidden');
-        sunIcon.classList.remove('hidden');
-        themeToggleBtn.classList.remove('bg-gray-800');
-        themeToggleBtn.classList.add('bg-gray-200');
+        moonIcon.classList.add('hidden'); sunIcon.classList.remove('hidden');
+        themeToggleBtn.classList.remove('bg-gray-800'); themeToggleBtn.classList.add('bg-gray-200');
+        voiceBtn.classList.remove('bg-gray-800'); voiceBtn.classList.add('bg-gray-200');
     }
-
     currentTheme = theme;
 }
 
-themeToggleBtn.addEventListener('click', () => {
-    applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-});
-
-
-const layouts = {
-standard:[['MC','MR','M+','M-'],['C','⌫','%','/'],['7','8','9','*'],['4','5','6','-'],['1','2','3','+'],['0','.','√(','=']],
-scientific:[['MC','MR','M+','M-','^'],['C','⌫','(',')','π','e'],['sin(','cos(','tan(','ln(','log('],['√(','1/x','|x|','7','8','9'],['/','4','5','6','*'],['-','1','2','3','+'],['0','.','+/-','=']],
-programmer:[['C','⌫','DEC','HEX','BIN'],['AND','OR','NOT','XOR','<<','>>'],['7','8','9','/'],['4','5','6','*'],['1','2','3','-'],['0','.','=','+'],['A','B','C','D','E','F']],
-converter:[['C','⌫','km→m','m→km'],['kg→g','g→kg','°C→°F','°F→°C'],['L→mL','mL→L','=','']],
-finance:[['C','⌫','%','SI(','CI('],['7','8','9','/'],['4','5','6','*'],['1','2','3','-'],['0','.','(','+'],[',',')','=','']],
-stats:[['C','⌫','( )','+','-','*','/'],['mean','median','mode','std'],['7','8','9','1','2','3','0','.','=','']],
-matrix:[['C','⌫','[ ]','+','-','*'],['det','inv','trans','=','','']],
-date:[['C','⌫','Today','DaysBetween(','+','-','*','/','=']],
-graph:[['C','⌫','(',')','^'],['x','sin(','cos(','tan('],['√(','ln(','log(','/'],['7','8','9','*'],['4','5','6','-'],['1','2','3','+'],['0','.','Plot','']],
-custom:[['C','⌫','1','2','3','4'],['5','6','7','8'],['9','0','Save','Load']]
-};
-
-function renderKeys(mode){
-const classes = themeClasses[currentTheme];
-keys.innerHTML='';
-const isSpecialGrid = ['programmer', 'scientific', 'matrix', 'stats'].includes(mode);
-keys.className = 'keys grid gap-3 flex-1 overflow-y-auto ' + (isSpecialGrid ? 'grid-cols-6' : 'grid-cols-4');
-if (['finance', 'graph'].includes(mode)) {
-    keys.classList.remove('grid-cols-6');
-    keys.classList.add('grid-cols-4');
-}
-
-
-const layout=layouts[mode]||layouts['standard'];
-layout.forEach(row=>{row.forEach(val=>{if(!val) return;
-let btn=document.createElement('button');
-btn.classList.add('key', 'p-3', 'rounded-xl', 'text-xl', 'font-semibold', 'shadow-md', 'transition', 'duration-150');
-
-btn.classList.add(classes.key_normal, currentTheme === 'dark' ? 'text-white' : 'text-gray-800');
-
-if(['C','⌫','MC','MR'].includes(val)) {
-    btn.classList.remove(classes.key_normal);
-    btn.classList.add(classes.key_action, currentTheme === 'dark' ? 'text-white' : 'text-gray-200');
-}
-if(['/','*','-','+','^','%'].includes(val)) {
-    btn.classList.remove(classes.key_normal, classes.key_action);
-    btn.classList.add(classes.key_op, 'text-white');
-}
-if(val==='C') {
-    btn.classList.remove(classes.key_action);
-    btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
-}
-if(val==='=') {
-    btn.classList.remove(classes.key_normal, classes.key_op, classes.key_action);
-    btn.classList.add('col-span-2', classes.key_equals, 'hover:opacity-90', 'text-white');
-}
-if(['DEC','HEX','BIN','mean','median','mode','std','det','inv','trans','Today','DaysBetween(','SI(','CI(','Save','Load', 'x','M+','M-'].includes(val) || val.includes('(') || val.includes('→')) {
-    btn.classList.remove(classes.key_normal, classes.key_action);
-    btn.classList.add(classes.key_func, currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700', currentTheme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-300');
-}
-if(val==='Plot') {
-    btn.classList.remove(classes.key_normal, classes.key_op, classes.key_action);
-    btn.classList.add('col-span-2', 'bg-emerald-600', 'hover:bg-emerald-500', 'text-white');
-}
-
-btn.textContent=val; btn.dataset.value=val;
-if(val==='C') btn.dataset.action='clear';
-if(val==='⌫') btn.dataset.action='back';
-if(val==='=') btn.dataset.action='equals';
-if(['MC','MR','M+','M-'].includes(val)) btn.dataset.action='memory';
-keys.appendChild(btn);});});
-}
-
-// --- CORE CALCULATION LOGIC ---
-
-function evaluateExpression(expr){
-try{
-    let safeExpr = expr.replace(/π/g,'Math.PI').replace(/e/g,'Math.E')
-        .replace(/√\(/g,'Math.sqrt(').replace(/ln\(/g,'Math.log(')
-        .replace(/log\(/g,'Math.log10(').replace(/\^/g,'**')
-        .replace(/sin\(/g,'Math.sin(').replace(/cos\(/g,'Math.cos(')
-        .replace(/tan\(/g,'Math.tan(')
-        .replace(/%/g,'/100')
-        .replace(/\|x\|/g,'Math.abs(x)');
-
-    if(currentMode==='programmer'){
-        safeExpr = safeExpr.replace(/AND/g,'&').replace(/OR/g,'|').replace(/XOR/g,'^').replace(/NOT/g,'~').replace(/<</g,'<<').replace(/>>/g,'>>');
-        return (Function('"use strict";return ('+safeExpr+')')()>>>0).toString(16).toUpperCase();
-    }
-
-    let result = Function('"use strict";return ('+safeExpr+')')();
-    return result;
-}catch(e){
-    console.error("Evaluation Error:", e);
-    return 'Error';
-}
-}
-
-// --- Other calculation functions (finance, date, stats etc.) are omitted for brevity but are unchanged ---
-function financeCalc(expr) {
-    const siMatch = expr.match(/SI\(([^,]+),\s*([^,]+),\s*([^)]+)\)/);
-    if (siMatch) {
-        const P = Number(evaluateExpression(siMatch[1]));
-        const R = Number(evaluateExpression(siMatch[2]));
-        const T = Number(evaluateExpression(siMatch[3]));
-        if (isNaN(P) || isNaN(R) || isNaN(T) || P < 0 || R < 0 || T < 0) return 'Invalid Input';
-        return (P * (1 + (R / 100) * T)).toFixed(2);
-    }
-    const ciMatch = expr.match(/CI\(([^,]+),\s*([^,]+),\s*([^,)]+)(?:,\s*([^)]+))?\)/);
-    if (ciMatch) {
-        const P = Number(evaluateExpression(ciMatch[1]));
-        const R = Number(evaluateExpression(ciMatch[2]));
-        const T = Number(evaluateExpression(ciMatch[3]));
-        const N = ciMatch[4] ? Number(evaluateExpression(ciMatch[4])) : 1;
-        if (isNaN(P) || isNaN(R) || isNaN(T) || isNaN(N) || P < 0 || R < 0 || T < 0 || N < 1) return 'Invalid Input';
-        return (P * Math.pow((1 + (R / (100 * N))), (N * T))).toFixed(2);
-    }
-    return 'Syntax Error: Use SI(...) or CI(...)';
-}
-
-function convertUnit(val){
-    const num = Number(expression);
-    let result = 'Error';
-    if(isNaN(num)) return result;
-    switch(val){
-        case 'km→m': result = num*1000; break; case 'm→km': result = num/1000; break;
-        case 'kg→g': result = num*1000; break; case 'g→kg': result = num/1000; break;
-        case '°C→°F': result = (num*9/5)+32; break; case '°F→°C': result = (num-32)*5/9; break;
-        case 'L→mL': result = num*1000; break; case 'mL→L': result = num/1000; break;
-        default: return;
-    }
-    resEl.textContent=result.toFixed(4).replace(/\.?0*$/, '');
-    resEl.classList.add('result-animate');
-    pushHistory(expression + ' ' + val, resEl.textContent);
-    expression=resEl.textContent;
-}
-
-function dateCalc(op){
-    let result = 'Error';
-    if(op==='Today'){
-        result = new Date().toISOString().slice(0,10);
-        pushHistory('Today', result);
-        expression = result.toString();
-    } else if(op.startsWith('DaysBetween(')){
-        const parts=expression.replace(/,$/, '').split(',').map(d => d.trim()).filter(d => d.length > 0);
-        if(parts.length===2){
-            const d1=new Date(parts[0]), d2=new Date(parts[1]);
-            if(isNaN(d1) || isNaN(d2)) result = 'Invalid Date (YYYY-MM-DD)';
-            else {
-                result = Math.abs(d2.getTime()-d1.getTime())/(1000*60*60*24);
-                pushHistory('DaysBetween('+parts.join(',')+')',result); expression=result.toString();
-            }
-        } else result = 'Format: YYYY-MM-DD,YYYY-MM-DD';
-    }
-    resEl.textContent = result;
-    resEl.classList.add('result-animate');
-}
-
-function statsCalc(func){
-    const arr = expression.split(',').map(n => Number(n.trim())).filter(n => !isNaN(n));
-    if (arr.length === 0) { resEl.textContent = 'Enter comma-separated numbers.'; return; }
-    let result = 'Error';
-    if(func==='mean') result=arr.reduce((a,b)=>a+b,0)/arr.length;
-    else if(func==='median'){ arr.sort((a,b)=>a-b); const mid=Math.floor(arr.length/2); result=arr.length%2?arr[mid]:(arr[mid-1]+arr[mid])/2; }
-    else if(func==='mode'){ const freq={}; let max=0; let mode=arr[0]; arr.forEach(n=>{freq[n]=(freq[n]||0)+1; if(freq[n]>max){max=freq[n]; mode=n;}}); result=mode; }
-    else if(func==='std'){ const mean=arr.reduce((a,b)=>a+b,0)/arr.length; result=Math.sqrt(arr.reduce((a,b)=>a+(b-mean)**2,0)/arr.length); }
-    resEl.textContent=typeof result === 'number' ? result.toFixed(4).replace(/\.?0*$/, '') : result;
-    resEl.classList.add('result-animate');
-    pushHistory(func+'('+expression+')',resEl.textContent);
-    expression=resEl.textContent;
-}
-
-// --- GRAPHING LOGIC ---
-function plotGraph(funcStr){
+function renderKeys(mode) {
     const classes = themeClasses[currentTheme];
-    const ctx = graphCanvas.getContext('2d');
-    const dataPoints = [];
-    try{
-        const safeFuncStr = funcStr.replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(').replace(/tan\(/g, 'Math.tan(').replace(/log\(/g, 'Math.log10(').replace(/ln\(/g, 'Math.log(').replace(/√\(/g, 'Math.sqrt(').replace(/\^/g,'**').replace(/e/g,'Math.E').replace(/π/g,'Math.PI');
-        const func = Function('x', '"use strict"; return (' + safeFuncStr + ')');
-        for(let x = -10; x <= 10; x += 0.1){
-            try { let y = func(x); if (isFinite(y)) dataPoints.push({ x: x, y: y }); } catch (e) {}
+    keys.innerHTML = '';
+    const isSpecialGrid = ['programmer', 'scientific'].includes(mode);
+    keys.className = 'keys grid gap-3 flex-1 overflow-y-auto ' + (isSpecialGrid ? 'grid-cols-6' : 'grid-cols-4');
+    if (['graph', 'ai'].includes(mode)) keys.className = 'keys grid gap-3 flex-1 overflow-y-auto grid-cols-4';
+    if (['programmer'].includes(mode)) keys.className = 'keys grid grid-cols-6 grid-rows-4 gap-2 flex-1 overflow-y-auto';
+
+    const layout = layouts[mode] || layouts['standard'];
+    layout.flat().forEach(val => {
+        if (!val) return;
+        let btn = document.createElement('button');
+        btn.className = 'key p-3 rounded-xl text-xl font-semibold shadow-md transition duration-150';
+        btn.classList.add(classes.key_normal, currentTheme === 'dark' ? 'text-white' : 'text-gray-800');
+
+        if (['C', '⌫', 'MC', 'MR'].includes(val)) btn.classList.replace(classes.key_normal, classes.key_action);
+        if (['/', '*', '-', '+', '^', '%'].includes(val)) btn.classList.replace(classes.key_normal, classes.key_op);
+        if (val === 'C') btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
+        if (val === '=') btn.classList.replace(classes.key_normal, classes.key_equals);
+        if (['DEC', 'HEX', 'BIN', 'OCT', 'Save', 'Load', 'x', 'M+', 'M-', 'Deg', 'Rad', 'Today', 'DaysBetween('].includes(val) || val.includes('(') || val.includes('→') || ['sin(','cos(','tan(','ln(','log(','√(','x²','1/x','π','e','|x|','+/-'].includes(val)) {
+            btn.classList.replace(classes.key_normal, classes.key_func);
+            btn.classList.add(currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700');
         }
-    } catch(e) { resEl.textContent = 'Syntax Error in function!'; return; }
-    if (dataPoints.length === 0) { resEl.textContent = 'No valid data points found.'; return; }
-    if(graphChart) graphChart.destroy();
-    graphChart = new Chart(ctx,{
-        type:'line', data:{ datasets:[{ label:'f(x) = '+funcStr, data:dataPoints, borderColor: classes.chart_color, borderWidth:2, pointRadius: 0, tension: 0.1 }] },
-        options:{ responsive:true, maintainAspectRatio: false, scales:{ x:{ type:'linear', position:'bottom', title:{display:true,text:'X Axis', color:classes.chart_text}, grid: { color: classes.chart_grid }, ticks:{color:classes.chart_text} }, y:{ title:{display:true,text:'Y Axis (f(x))', color:classes.chart_text}, grid: { color: classes.chart_grid }, ticks:{color:classes.chart_text} } }, plugins: { legend: { labels: { color: classes.chart_text } } } }
-    });
-    resEl.textContent = `Graph of f(x)=${funcStr} plotted.`;
-    pushHistory('Graph: f(x)='+funcStr, 'Plotted');
-}
-// --- END GRAPHING LOGIC ---
-
-
-// --- MEMORY FUNCTIONALITY ---
-function handleMemory(op) {
-    let num = Number(resEl.textContent);
-    if (isNaN(num)) { showToast('Invalid number for memory operation.', false); return; }
-    switch (op) {
-        case 'M+': memory += num; showToast(`Memory: M + ${num.toFixed(2)}`, true); break;
-        case 'M-': memory -= num; showToast(`Memory: M - ${num.toFixed(2)}`, true); break;
-        case 'MR': expression += memory.toString(); resEl.textContent = memory.toString(); showToast(`Recalled: ${memory.toFixed(2)}`, true); break;
-        case 'MC': memory = 0; showToast('Memory Cleared', true); break;
-    }
-}
-
-// --- FIREBASE/CLOUD PERSISTENCE ---
-function setupFirestoreListeners(){
-    window.initFirebase((db, auth, userId) => {
-        firestoreDb = db; currentUserId = userId;
-        if(db && userId){
-            setupHistoryListener();
-            setupCustomListener();
+        if (val === 'Plot' || val === 'Ask AI') { 
+            btn.classList.replace(classes.key_normal, 'bg-emerald-600'); 
+            btn.classList.add('hover:bg-emerald-500', 'text-white');
         }
+        
+        if (val === '=') { 
+          if(mode === 'programmer') btn.classList.add('row-span-2');
+          else btn.classList.add('col-span-2');
+        }
+        if (val === 'Ask AI') {
+            btn.classList.add('col-span-4');
+        }
+
+        btn.textContent = val; btn.dataset.value = val;
+        keys.appendChild(btn);
     });
 }
-
-function setupHistoryListener() {
-    const q = query(collection(firestoreDb, `artifacts/${appId}/users/${currentUserId}/history`));
-    onSnapshot(q, (snapshot) => {
-        let historyData = [];
-        snapshot.forEach(doc => historyData.push({ id: doc.id, ...doc.data() }));
-        historyData.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
-        window.historyData = historyData.slice(0, 15);
-        renderHistory(window.historyData);
-    }, (error) => { console.error("History listener error:", error); document.getElementById('historyLoading').textContent = "Error loading history."; });
-}
-
-function renderHistory(data) {
-    const classes = themeClasses[currentTheme];
-    historyEl.innerHTML = `<h3 class="font-semibold mb-2 ${classes.text}">Calculation History (Cloud)</h3>`;
-    if (data && data.length > 0) {
-        data.forEach(item => {
-            const itemElement = document.createElement('div');
-            itemElement.className = `history-item flex justify-between p-2 rounded-md cursor-pointer transition duration-100 ${currentTheme === 'dark' ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-500 hover:bg-gray-100'}`;
-            itemElement.innerHTML = `<span class="truncate">${item.expression}</span><strong class="${classes.result}">${item.result}</strong>`;
-            itemElement.onclick = () => { expression = item.expression; resEl.textContent = item.result; render(); };
-            historyEl.appendChild(itemElement);
-        });
-    } else {
-        historyEl.innerHTML += `<p class="text-xs ${classes.hint} mt-1" id="historyLoading">No history saved yet.</p>`;
-    }
-}
-
-async function pushHistory(expr, result){
-    if (!firestoreDb || !currentUserId || expr === '0' || result === 'Error') return;
-    try {
-        await addDoc(collection(firestoreDb, `artifacts/${appId}/users/${currentUserId}/history`), { expression: expr, result: result, timestamp: serverTimestamp() });
-    } catch (e) { console.error("History save error: ", e); showToast('History Save Failed!', false); }
-}
-
-function setupCustomListener() {
-    const q = query(collection(firestoreDb, `artifacts/${appId}/users/${currentUserId}/custom_calculations`));
-    onSnapshot(q, (snapshot) => {
-        customCalculations = [];
-        snapshot.forEach(doc => customCalculations.push({ id: doc.id, ...doc.data() }));
-        customCalculations.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
-        renderCustomList();
-    }, (error) => { console.error("Custom calc listener error:", error); document.getElementById('customEmpty').textContent = "Error loading data."; });
-}
-
-function renderCustomList() {
-    const classes = themeClasses[currentTheme];
-    customListEl.innerHTML = `<h3 class="font-semibold mb-2 ${classes.result}">Saved Custom Calculations</h3>`;
-    if (customCalculations.length > 0) {
-        customCalculations.forEach(item => {
-            const li = document.createElement('div');
-            li.className = `history-item flex justify-between p-2 rounded-lg cursor-pointer transition ${currentTheme === 'dark' ? 'text-gray-300 hover:bg-gray-900' : 'text-gray-700 hover:bg-gray-100'}`;
-            li.innerHTML = `<span class="truncate">${item.expression}</span><span class="${classes.result} font-medium">${item.result}</span>`;
-            li.onclick = () => { expression = item.expression; resEl.textContent = item.result; render(); };
-            customListEl.appendChild(li);
-        });
-    } else {
-        customListEl.innerHTML += `<p class="text-xs ${classes.hint} mt-1" id="customEmpty">No custom calculations saved yet.</p>`;
-    }
-}
-
-async function customSave(){
-    if (!firestoreDb || !currentUserId) { showToast('Cloud save is not ready.', false); return; }
-    if (!expression || resEl.textContent === '0' || resEl.textContent === 'Error') { showToast('No valid calculation to save.', false); return; }
-    try {
-        await addDoc(collection(firestoreDb, `artifacts/${appId}/users/${currentUserId}/custom_calculations`), { expression: expression, result: resEl.textContent, timestamp: serverTimestamp() });
-        showToast('Custom Formula Saved!', true);
-    } catch (e) { console.error("Custom save error: ", e); showToast('Save Failed!', false); }
-}
-
-// --- UI Rendering and Event Handlers ---
 
 function render(){
-    exprEl.textContent=expression||'0';
-    resEl.classList.remove('result-animate'); // Remove animation class to allow re-triggering
-
-    const hint = document.querySelector('.hint');
-    const hintColorClass = currentTheme === 'dark' ? 'text-gray-500' : 'text-gray-600';
-    const violetColorClass = currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700';
-    const emeraldColorClass = currentTheme === 'dark' ? 'text-emerald-400' : 'text-emerald-700';
-    hint.className = `hint text-xs mt-2 text-center`; // Reset classes
+    exprEl.textContent = expression || '0';
+    resEl.classList.remove('result-animate');
     
-    if (currentMode === 'finance') {
-        hint.textContent = 'Syntax: SI(P, R, T) or CI(P, R, T, N). Press =';
-        hint.classList.add(violetColorClass);
-    } else if (currentMode === 'graph') {
-        hint.textContent = 'Enter f(x) like x*x. Press Plot.';
-        hint.classList.add(emeraldColorClass);
-    } else {
-        hint.textContent = 'Keyboard supported: 0–9, + - * / ( ) . Enter, Backspace, Esc';
-        hint.classList.add(hintColorClass);
-    }
+    const hint = document.querySelector('.hint');
+    const hintColor = currentTheme === 'dark' ? 'text-gray-500' : 'text-gray-600';
+    const violetColor = currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700';
+    const emeraldColor = currentTheme === 'dark' ? 'text-emerald-400' : 'text-emerald-700';
+
+    hint.className = 'hint text-xs mt-2 text-center'; // Reset
+    if (currentMode === 'ai') { hint.textContent = 'Ask any math question in natural language'; hint.classList.add(emeraldColor); }
+    else if (currentMode === 'finance') { hint.textContent = 'Use SI(P,R,T) or CI(P,R,T,N)'; hint.classList.add(violetColor); }
+    else if (currentMode === 'graph') { hint.textContent = 'Enter f(x) like 2*x^2. Press Plot.'; hint.classList.add(emeraldColor); }
+    else { hint.textContent = 'Keyboard and Voice supported'; hint.classList.add(hintColor); }
 
     customListEl.classList.toggle('hidden', currentMode !== 'custom');
     historyEl.classList.toggle('hidden', currentMode === 'custom');
     graphContainer.classList.toggle('hidden', currentMode !== 'graph');
 }
 
-keys.addEventListener('click',e=>{
-    const btn=e.target.closest('button'); if(!btn)return;
-    const val=btn.dataset.value; const action=btn.dataset.action;
+// --- CORE CALCULATION LOGIC ---
+function evaluateExpression(expr){
+    try {
+        let safeExpr = expr.replace(/π/g, 'Math.PI').replace(/e/g, 'Math.E')
+            .replace(/√\(/g, 'Math.sqrt(').replace(/ln\(/g, 'Math.log(')
+            .replace(/log\(/g, 'Math.log10(').replace(/\^/g, '**')
+            .replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(')
+            .replace(/tan\(/g, 'Math.tan(').replace(/%/g, '/100')
+            .replace(/\|x\|/g, 'Math.abs(x)');
 
-    if(action==='clear'){expression=''; resEl.textContent='0'; render(); return;}
-    if(action==='back'){expression=expression.slice(0,-1); render(); return;}
-    if(action==='memory'){handleMemory(val); render(); return;}
-    if(val==='Plot'){if(expression.trim()===''){ resEl.textContent = 'Enter function first!'; return; } plotGraph(expression); return;}
-
-    if(action==='equals'){
-        let res = '';
-        if (currentMode === 'finance') res = financeCalc(expression);
-        else if (['stats', 'date', 'graph'].includes(currentMode)) res = 'Error: Use function buttons.'; 
-        else res = evaluateExpression(expression||'0');
-
-        if (res.toString().includes('Error') || (isNaN(res) && typeof res !== 'string')) {
-            resEl.textContent = 'Error';
-        } else {
-            resEl.textContent = typeof res === 'number' ? parseFloat(res.toFixed(8)) : res.toString();
+        if (currentMode === 'programmer') {
+            safeExpr = safeExpr.replace(/AND/g, '&').replace(/OR/g, '|').replace(/XOR/g, '^').replace(/NOT/g, '~').replace(/<</g, '<<').replace(/>>/g, '>>');
+            return (eval(safeExpr) >>> 0).toString(16).toUpperCase();
         }
-        
-        if(resEl.textContent!=='Error' && expression){
-            pushHistory(expression,resEl.textContent); 
-        }
-        expression = resEl.textContent.includes('Error') ? '' : resEl.textContent;
-        resEl.classList.add('result-animate');
-        render(); 
+        return Function('"use strict";return (' + safeExpr + ')')();
+    } catch (e) {
+        console.error("Evaluation Error:", e);
+        return 'Error';
+    }
+}
+
+// --- AI CALCULATION ---
+async function calculateWithAI(userQuery) {
+    if (!userQuery.trim()) {
+        showToast('Please enter a question for the AI.', 'error');
         return;
     }
+    showToast('Asking AI...', 'info');
+    resEl.textContent = '...'; 
 
-    if(currentMode==='converter'){convertUnit(val); return;}
-    if(currentMode==='stats' && ['mean','median','mode','std'].includes(val)){ statsCalc(val); return;}
-    if(currentMode==='date' && (val.endsWith('(') || val === 'Today')){ dateCalc(val); return;}
-    if(currentMode==='custom' && val==='Save'){customSave(); return;}
+    const apiKey = ""; 
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
-    expression+=val; 
-    render();
-});
+    const systemPrompt = "You are a powerful calculator. Evaluate the user's mathematical query. Respond with only the final numerical answer or a simplified mathematical expression. Do not provide explanations or any extra text. For example, if the user asks 'what is 5 plus 5', you should only respond '10'.";
 
-window.addEventListener('keydown',e=>{
-    const allowed='0123456789+-*/().%,x';
-    if(e.key==='Enter'){e.preventDefault();document.querySelector('[data-action="equals"]')?.click();return;}
-    if(e.key==='Escape'){document.querySelector('[data-action="clear"]')?.click();return;}
-    if(e.key==='Backspace'){document.querySelector('[data-action="back"]')?.click();return;}
-    if(allowed.includes(e.key)){expression+=e.key;render();}
-});
+    const payload = {
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+    };
 
-copyBtn.addEventListener('click',()=>{
-    const tempInput = document.createElement('textarea');
-    tempInput.value = resEl.textContent;
-    document.body.appendChild(tempInput);
-    tempInput.select();
     try {
-        document.execCommand('copy');
-        showToast('Result Copied!', true);
-    } catch (err) {
-        showToast('Copy Failed!', false);
-    }
-    document.body.removeChild(tempInput);
-});
-
-sidebarToggle.addEventListener('click', toggleSidebarWidth);
-
-menuContainer.addEventListener('click',e=>{
-    const btn=e.target.closest('button.menu-btn'); if(!btn)return;
-    
-    // Animate Icon
-    const icon = btn.querySelector('svg');
-    if (icon) {
-        icon.classList.add('icon-animate');
-        icon.addEventListener('animationend', () => icon.classList.remove('icon-animate'), { once: true });
-    }
-
-    keys.style.opacity = '0'; keys.style.transform = 'translateY(10px)';
-
-    if (graphChart) { graphChart.destroy(); graphChart = null; }
-
-    setTimeout(() => {
-        const classes = themeClasses[currentTheme];
-        sidebar.querySelectorAll('button').forEach(b=>{
-            b.classList.remove('active', classes.menu_active);
-            b.classList.add(classes.menu_btn);
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
-        btn.classList.add('active', classes.menu_active); 
-        currentMode=btn.dataset.mode; 
-        expression=''; 
-        resEl.textContent='0'; 
-        renderKeys(currentMode);
-        
-        keys.style.opacity = '1'; 
-        keys.style.transform = 'translateY(0)';
+
+        if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
+
+        const result = await response.json();
+        const candidate = result.candidates?.[0];
+
+        if (candidate && candidate.content?.parts?.[0]?.text) {
+            const aiResult = candidate.content.parts[0].text.trim();
+            resEl.textContent = aiResult;
+            pushHistory(userQuery, aiResult);
+            expression = aiResult;
+        } else {
+            throw new Error('Invalid response structure from AI');
+        }
+    } catch (error) {
+        console.error("AI Calculation Error:", error);
+        resEl.textContent = 'AI Error';
+        showToast('Failed to get response from AI.', 'error');
+    } finally {
         render();
-    }, 200);
-});
+    }
+}
 
 
-// Initialization
-renderKeys('standard');
-setupFirestoreListeners();
-applyTheme('dark');
-initializeSidebarState();
+// --- GRAPHING LOGIC (FIXED) ---
+function sanitizeGraphExpression(expr) {
+    return expr
+        .replace(/(\d)x/g, '$1*x').replace(/x\(/g, 'x*(').replace(/\)(\d)/g, ')*$1')
+        .replace(/\)x/g, ')*x').replace(/\)\(/g, ')*(');
+}
+
+function plotGraph(funcStr){
+    const classes = themeClasses[currentTheme];
+    const ctx = graphCanvas.getContext('2d');
+    const dataPoints = [];
+    try {
+        const sanitizedStr = sanitizeGraphExpression(funcStr);
+        const safeFuncStr = sanitizedStr.replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(').replace(/tan\(/g, 'Math.tan(').replace(/log\(/g, 'Math.log10(').replace(/ln\(/g, 'Math.log(').replace(/√\(/g, 'Math.sqrt(').replace(/\^/g, '**').replace(/e/g, 'Math.E').replace(/π/g, 'Math.PI');
+        const func = new Function('x', `"use strict"; return ${safeFuncStr}`);
+        
+        for (let x = -10; x <= 10; x += 0.1) {
+            try {
+                let y = func(x.toPrecision(4));
+                if (isFinite(y)) dataPoints.push({ x: x, y: y });
+            } catch (e) { /* ignore single point errors */ }
+        }
+    } catch (e) {
+        showToast('Invalid function syntax!', 'error');
+        return;
+    }
+    if (dataPoints.length === 0) { showToast('No data points to plot.', 'error'); return; }
+    
+    if (graphChart) graphChart.destroy();
+    graphChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets: [{ label: `f(x) = ${funcStr}`, data: dataPoints, borderColor: classes.chart_color, borderWidth: 2, pointRadius: 0, tension: 0.1 }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'linear', position: 'bottom', title: { display: true, text: 'X Axis', color: classes.chart_text }, grid: { color: classes.chart_grid }, ticks: { color: classes.chart_text } }, y: { title: { display: true, text: 'Y Axis', color: classes.chart_text }, grid: { color: classes.chart_grid }, ticks: { color: classes.chart_text } } }, plugins: { legend: { labels: { color: classes.chart_text } } } }
+    });
+    showToast('Graph plotted successfully', 'success');
+    pushHistory('Graph: f(x)=' + funcStr, 'Plotted');
+}
+
+// --- VOICE COMMANDS ---
+function setupSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        voiceBtn.disabled = true;
+        showToast('Voice recognition not supported in this browser.', 'error');
+        return;
+    }
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => { isListening = true; voiceBtn.classList.add('mic-active', 'bg-red-500'); showToast('Listening...', 'info'); };
+    recognition.onend = () => { isListening = false; voiceBtn.classList.remove('mic-active', 'bg-red-500'); };
+    recognition.onerror = (event) => { showToast(`Voice error: ${event.error}`, 'error'); };
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.trim().toLowerCase();
+        showToast(`You said: "${transcript}"`, 'info');
+        processVoiceCommand(transcript);
+    };
+}
+
+function processVoiceCommand(command) {
+    let processed = command
+        .replace(/plus/g, '+').replace(/minus/g, '-').replace(/times|multiply/g, '*')
+        .replace(/divided by/g, '/').replace(/point/g, '.').replace(/open bracket/g, '(')
+        .replace(/close bracket/g, ')');
+
+    if (processed.includes('equals') || processed.includes('equal to')) {
+        const actionBtn = currentMode === 'ai' ? '[data-value="Ask AI"]' : '[data-value="="]';
+        document.querySelector(actionBtn)?.click(); return;
+    }
+    if (processed.includes('clear')) { document.querySelector('[data-value="C"]')?.click(); return; }
+    if (processed.includes('backspace') || processed.includes('delete')) { document.querySelector('[data-value="⌫"]')?.click(); return; }
+
+    processed = processed.replace(/[^0-9+\-*/().^x\s]/g, '');
+    expression += processed;
+    render();
+}
+
+// --- EVENT HANDLERS ---
+function handleKeyClick(e) {
+    const btn = e.target.closest('button'); if (!btn) return;
+    const val = btn.dataset.value;
+
+    const actions = {
+        'C': () => { expression = ''; resEl.textContent = '0'; },
+        '⌫': () => expression = expression.slice(0, -1),
+        '=': handleEquals,
+        'Ask AI': () => calculateWithAI(expression),
+        'Plot': () => plotGraph(expression),
+        'Save': customSave,
+        'MC': () => { memory = 0; showToast('Memory Cleared'); },
+        'MR': () => { expression += memory; },
+        'M+': () => { memory += Number(resEl.textContent) || 0; showToast(`Added to Memory. M=${memory}`); },
+        'M-': () => { memory -= Number(resEl.textContent) || 0; showToast(`Subtracted from Memory. M=${memory}`); },
+        'x²': () => expression += '^2',
+        '1/x': () => expression += '1/',
+        '|x|': () => expression += 'abs(',
+        '+/-': () => expression += '(-',
+    };
+
+    if (actions[val]) { actions[val](); } 
+    else if (val.includes('→')) { convertUnit(val); } 
+    else { expression += val; }
+    render();
+}
+
+function handleEquals() {
+    if (!expression) return;
+    let res = evaluateExpression(expression);
+    if (res.toString().includes('Error') || (isNaN(res) && typeof res !== 'string')) {
+        resEl.textContent = 'Error';
+    } else {
+        resEl.textContent = typeof res === 'number' ? parseFloat(res.toFixed(8)) : res.toString();
+        pushHistory(expression, resEl.textContent);
+    }
+    expression = resEl.textContent.includes('Error') ? '' : resEl.textContent;
+    resEl.classList.add('result-animate');
+}
+
+function convertUnit(val){
+    const num = Number(expression);
+    let result = 'Error';
+    if(isNaN(num)) { showToast('Enter a number first', 'error'); return; }
+    const conversions = { 'km→m': num*1000, 'm→km': num/1000, 'kg→g': num*1000, 'g→kg': num/1000, '°C→°F': (num*9/5)+32, '°F→°C': (num-32)*5/9, 'L→mL': num*1000, 'mL→L': num/1000 };
+    result = conversions[val];
+    resEl.textContent = result.toFixed(4).replace(/\.?0*$/, '');
+    resEl.classList.add('result-animate');
+    pushHistory(expression + ' ' + val, resEl.textContent);
+    expression = resEl.textContent;
+}
+
+// --- INITIALIZATION ---
+function initializeApp() {
+    menuItems.forEach((item, index) => {
+        const btn = document.createElement('button');
+        btn.className = `menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full`;
+        if (index === 0) btn.classList.add('active', 'menu-btn-active-dark');
+        btn.dataset.mode = item.mode;
+        btn.innerHTML = `${item.icon}<span class="hidden menu-label">${item.label}</span>`;
+        menuContainer.appendChild(btn);
+    });
+
+    renderKeys('standard');
+    applyTheme('dark');
+    setupSpeechRecognition();
+
+    keys.addEventListener('click', handleKeyClick);
+    themeToggleBtn.addEventListener('click', () => applyTheme(currentTheme === 'dark' ? 'light' : 'dark'));
+    voiceBtn.addEventListener('click', () => { if (recognition && !isListening) recognition.start(); });
+    sidebarToggle.addEventListener('click', toggleSidebarWidth);
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(resEl.textContent).then(() => showToast('Result Copied!', 'success'), () => showToast('Copy Failed!', 'error'));
+    });
+
+    menuContainer.addEventListener('click', e => {
+        const btn = e.target.closest('button.menu-btn'); if (!btn) return;
+        const icon = btn.querySelector('svg');
+        if (icon) { icon.classList.add('icon-animate'); icon.addEventListener('animationend', () => icon.classList.remove('icon-animate'), { once: true }); }
+        
+        keys.style.opacity = '0'; keys.style.transform = 'translateY(10px)';
+        if (graphChart) { graphChart.destroy(); graphChart = null; }
+
+        setTimeout(() => {
+            const classes = themeClasses[currentTheme];
+            sidebar.querySelectorAll('button.menu-btn').forEach(b => b.classList.remove('active', classes.menu_active));
+            btn.classList.add('active', classes.menu_active);
+            currentMode = btn.dataset.mode;
+            expression = ''; resEl.textContent = '0';
+            renderKeys(currentMode);
+            keys.style.opacity = '1'; keys.style.transform = 'translateY(0)';
+            render();
+        }, 200);
+    });
+
+    window.addEventListener('keydown', e => {
+        const keyMap = { 'Enter': currentMode === 'ai' ? 'Ask AI' : '=', 'Escape': 'C', 'Backspace': '⌫' };
+        const targetVal = keyMap[e.key] || (('0123456789+-*/().%^x').includes(e.key) ? e.key : null);
+        if (targetVal) {
+            e.preventDefault();
+            document.querySelector(`[data-value="${targetVal}"]`)?.click();
+        }
+    });
+
+    if (window.innerWidth >= 768) {
+        toggleSidebarWidth();
+    }
+}
+
+// Dummy functions for Firebase to avoid errors if not configured
+function pushHistory(){} function customSave(){} function renderCustomList(){} function renderHistory(){} 
+
+function toggleSidebarWidth() {
+    isSidebarExpanded = !isSidebarExpanded;
+    const elements = {
+        title: getEl('sidebarTitle'), userId: getEl('userIdDisplay'), credit: getEl('creatorCredit'),
+        icon: getEl('toggleIcon'), labels: document.querySelectorAll('.menu-label'),
+        btns: document.querySelectorAll('.menu-btn'), header: getEl('sidebarHeader')
+    };
+    sidebar.classList.toggle('w-16', !isSidebarExpanded); sidebar.classList.toggle('w-56', isSidebarExpanded);
+    Object.values(elements).forEach(el => {
+        if(el.forEach) el.forEach(subEl => subEl.classList.toggle('hidden', !isSidebarExpanded));
+        else if(el) el.classList.toggle('hidden', !isSidebarExpanded);
+    });
+    elements.header.classList.toggle('justify-center', !isSidebarExpanded);
+    elements.header.classList.toggle('justify-between', isSidebarExpanded);
+    elements.btns.forEach(b => {
+        b.classList.toggle('justify-center', !isSidebarExpanded);
+        b.classList.toggle('justify-start', isSidebarExpanded);
+    });
+    elements.icon.innerHTML = isSidebarExpanded
+        ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>`
+        : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>`;
+}
+
+initializeApp();
 })();
 </script>
 
