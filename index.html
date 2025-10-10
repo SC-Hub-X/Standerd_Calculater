@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="si">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -81,6 +81,14 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
   100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 .mic-active { animation: mic-pulse 1.5s infinite; }
+@keyframes key-press-animation {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.92); box-shadow: inset 0 3px 6px rgba(0,0,0,0.2); }
+  100% { transform: scale(1); }
+}
+.key-pressed {
+  animation: key-press-animation 0.2s ease-out;
+}
 
 /* --- BASE & COMMON STYLES --- */
 #sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); } 
@@ -92,10 +100,10 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 .menu-btn { transition: background-color 0.2s, color 0.2s, transform 0.1s; }
 
 /* Scrollbar styles */
-.sidebar::-webkit-scrollbar, #keys::-webkit-scrollbar, #history::-webkit-scrollbar, #customList::-webkit-scrollbar { width: 8px; }
-.sidebar::-webkit-scrollbar-track, #keys::-webkit-scrollbar-track, #history::-webkit-scrollbar-track, #customList::-webkit-scrollbar-track { background: #111827; border-radius: 4px; }
-.sidebar::-webkit-scrollbar-thumb, #keys::-webkit-scrollbar-thumb, #history::-webkit-scrollbar-thumb, #customList::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 4px; }
-.sidebar::-webkit-scrollbar-thumb:hover, #keys::-webkit-scrollbar-thumb:hover, #history::-webkit-scrollbar-thumb:hover, #customList::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+.sidebar::-webkit-scrollbar, #keys::-webkit-scrollbar, #history::-webkit-scrollbar, #customList::-webkit-scrollbar, #instructionsContent::-webkit-scrollbar { width: 8px; }
+.sidebar::-webkit-scrollbar-track, #keys::-webkit-scrollbar-track, #history::-webkit-scrollbar-track, #customList::-webkit-scrollbar-track, #instructionsContent::-webkit-scrollbar-track { background: #111827; border-radius: 4px; }
+.sidebar::-webkit-scrollbar-thumb, #keys::-webkit-scrollbar-thumb, #history::-webkit-scrollbar-thumb, #customList::-webkit-scrollbar-thumb, #instructionsContent::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 4px; }
+.sidebar::-webkit-scrollbar-thumb:hover, #keys::-webkit-scrollbar-thumb:hover, #history::-webkit-scrollbar-thumb:hover, #customList::-webkit-scrollbar-thumb:hover, #instructionsContent::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
 
 /* --- THEME SPECIFIC STYLES --- */
 /* DARK MODE (Default) */
@@ -140,8 +148,8 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 .graph-bg-light { background-color: #ffffff; }
 .frame-light { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1); }
 
-.body-light .sidebar::-webkit-scrollbar-track, .body-light #keys::-webkit-scrollbar-track, .body-light #history::-webkit-scrollbar-track, .body-light #customList::-webkit-scrollbar-track { background: #e5e7eb; }
-.body-light .sidebar::-webkit-scrollbar-thumb, .body-light #keys::-webkit-scrollbar-thumb, .body-light #history::-webkit-scrollbar-thumb, .body-light #customList::-webkit-scrollbar-thumb { background: #8b5cf6; }
+.body-light .sidebar::-webkit-scrollbar-track, .body-light #keys::-webkit-scrollbar-track, .body-light #history::-webkit-scrollbar-track, .body-light #customList::-webkit-scrollbar-track, .body-light #instructionsContent::-webkit-scrollbar-track { background: #e5e7eb; }
+.body-light .sidebar::-webkit-scrollbar-thumb, .body-light #keys::-webkit-scrollbar-thumb, .body-light #history::-webkit-scrollbar-thumb, .body-light #customList::-webkit-scrollbar-thumb, .body-light #instructionsContent::-webkit-scrollbar-thumb { background: #8b5cf6; }
 
 /* Toast Notification Styles */
 #toastContainer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; pointer-events: none; }
@@ -153,16 +161,15 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 
 /* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 768px) {
-    .main { padding: 1rem; }
-    #waterFrame { padding: 0.5rem; max-height: 95vh; }
+    .main { padding: 1rem; flex-direction: column;}
+    #waterFrame { padding: 0.5rem; max-height: 95vh; order: 2; }
     #calculator { padding: 1rem; }
-    .keys { gap: 0.6rem; }
-    .key { padding: 0.8rem; font-size: 1.25rem; }
+    .keys { gap: 0.5rem; }
+    .key { padding: 0.7rem; font-size: 1.1rem; }
     .display { min-height: 80px; }
     .result { font-size: 2.2rem; }
-    #topControls { flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+    #topControls { flex-direction: row; align-items: center; gap: 0.5rem; position: relative; top: 0; right: 0; order: 1; margin-bottom: 1rem; }
 }
-
 </style>
 </head>
 
@@ -172,7 +179,7 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 <div id="toastContainer"></div>
 
 <!-- SIDEBAR -->
-<div class="sidebar w-16 sidebar-dark flex flex-col py-3 overflow-y-auto transition-all duration-300 shadow-xl" id="sidebar">
+<div class="sidebar w-16 sidebar-dark flex-col py-3 overflow-y-auto transition-all duration-300 shadow-xl hidden md:flex" id="sidebar">
     <div class="p-3 mb-2 font-bold text-lg text-violet-400 flex items-center justify-center space-x-2" id="sidebarHeader">
         <span class="hidden" id="sidebarTitle">Calculator Modes</span>
         <button id="sidebarToggle" class="p-1 rounded-full text-violet-300 hover:bg-violet-600 hover:text-white transition duration-200" aria-label="Toggle Sidebar Width">
@@ -191,6 +198,16 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 <div class="main flex-1 flex justify-center items-center p-4 md:p-10 h-screen relative">
     
     <div id="topControls" class="absolute top-4 right-4 md:top-10 md:right-10 flex items-center space-x-3 z-10">
+        <!-- Language Selector -->
+        <div class="relative">
+            <select id="languageSelector" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800 text-gray-400 appearance-none pr-8 focus:outline-none cursor-pointer text-sm">
+                <!-- Options will be populated by JS -->
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+        </div>
+        
         <button id="voiceBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800" aria-label="Activate Voice Command">
             <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v2a3 3 0 01-3 3z"></path></svg>
         </button>
@@ -198,10 +215,13 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
             <svg id="moonIcon" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.903A7.5 7.5 0 0110 15a7.5 7.5 0 01-7.293-8.097 8 8 0 0014.586 8.097z"></path></svg>
             <svg id="sunIcon" class="w-6 h-6 text-yellow-500 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 4.364a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707zM3 10a1 1 0 011-1h1a1 1 0 110 2H4a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-4.95-.5a1 1 0 00-1.414 0l-.707.707a1 1 0 101.414 1.414l.707-.707a1 1 0 000-1.414zM4 15a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-9.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 15.636a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707z" clip-rule="evenodd"></path></svg>
         </button>
+        <button id="helpBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800" aria-label="Show Help">
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </button>
     </div>
 
     <!-- MAIN CALCULATOR FRAME -->
-    <div id="waterFrame" class="frame-dark shadow-2xl rounded-3xl p-2 md:p-3 flex flex-col h-full w-full max-w-lg md:max-w-xl transition-all duration-300">
+    <div id="waterFrame" class="frame-dark shadow-2xl rounded-3xl p-2 md:p-3 flex flex-col h-full w-full max-w-lg md:max-w-2xl transition-all duration-300">
         <main class="calc calc-dark rounded-2xl p-4 md:p-6 flex flex-col h-full transition-all duration-300" role="application" aria-label="Calculator" id="calculator">
             <div class="display display-dark p-4 rounded-xl min-h-[90px] mb-4 shadow-inner flex flex-col justify-end">
                 <div class="expr text-sm break-all expr-dark text-right" id="expression">0</div>
@@ -212,11 +232,11 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
                 <canvas id="graphCanvas" class="w-full h-full rounded-xl border graph-border-dark graph-bg-dark"></canvas>
             </div>
             
-            <div class="keys grid gap-3 flex-1 overflow-y-auto" id="keys"></div>
+            <div class="keys grid gap-2" id="keys"></div>
 
             <div class="mt-4">
                 <button id="copyBtn" class="w-full py-3 key-action-dark text-white font-semibold rounded-lg transition duration-200">Copy Result</button>
-                <div class="hint text-xs mt-2 text-center hint-dark">Keyboard supported: 0–9, + - * / ( ) . Enter, Backspace, Esc</div>
+                <div class="hint text-xs mt-2 text-center hint-dark">Keyboard and Voice supported</div>
             </div>
             
             <div class="history mt-4 max-h-40 overflow-y-auto text-sm border-t border-gray-700 pt-3" id="history" aria-live="polite">
@@ -229,6 +249,20 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
         </main>
     </div>
 </div>
+
+<!-- INSTRUCTIONS MODAL -->
+<div id="instructionsModalOverlay" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="instructionsPanel" class="frame-dark shadow-2xl rounded-3xl p-6 w-full max-w-md relative transition-all duration-300 transform scale-95 opacity-0">
+         <button id="closeHelpBtn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+         </button>
+         <h3 id="instructionsTitle" class="text-xl font-bold mb-4 text-violet-400 flex items-center gap-3">How to Use</h3>
+         <div id="instructionsContent" class="text-sm space-y-3 text-gray-300 max-h-[60vh] overflow-y-auto pr-2">
+             <!-- Instructions will be populated here -->
+         </div>
+    </div>
+</div>
+
 
 <script>
 // Main calculator logic
@@ -253,6 +287,14 @@ const moonIcon = getEl('moonIcon');
 const sunIcon = getEl('sunIcon');
 const toastContainer = getEl('toastContainer');
 const voiceBtn = getEl('voiceBtn');
+const languageSelector = getEl('languageSelector');
+const helpBtn = getEl('helpBtn');
+const instructionsModalOverlay = getEl('instructionsModalOverlay');
+const instructionsPanel = getEl('instructionsPanel');
+const instructionsTitle = getEl('instructionsTitle');
+const instructionsContent = getEl('instructionsContent');
+const closeHelpBtn = getEl('closeHelpBtn');
+
 
 // --- STATE VARIABLES ---
 let expression = '';
@@ -266,31 +308,168 @@ let firestoreDb = null;
 let currentUserId = null;
 let recognition;
 let isListening = false;
+let angleUnit = 'rad'; // New state for scientific mode: 'rad' or 'deg'
+let isHelpPanelVisible = false;
 
 // --- MENU & LAYOUT DATA ---
 const menuItems = [
-    { mode: 'standard', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>`, label: 'Standard' },
-    { mode: 'ai', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13.18v4.24a2 2 0 001.106 1.79l4.588 2.294a2 2 0 001.812 0l4.588-2.294A2 2 0 0019 17.42V13.18M12 15.41v-5.8M12 3.12A2.25 2.25 0 0010.06 1.5H9.75a2.25 2.25 0 00-2.25 2.25v.49a2.25 2.25 0 00.182 1.01l.01.02.002.003a2.25 2.25 0 003.88 1.01l.01-.02.002-.003A2.25 2.25 0 0014.25 4.24v-.49A2.25 2.25 0 0012 1.5v0Z"></path></svg>`, label: 'AI Calculate' },
-    { mode: 'scientific', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 11h2m10 0h2M3 15h4m10 0h4M2 12l2-2h16l2 2M16 4h4v4h-4zM8 12h8v8H8z"></path></svg>`, label: 'Scientific' },
-    { mode: 'programmer', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>`, label: 'Programmer' },
-    { mode: 'graph', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>`, label: 'Graph' },
-    { mode: 'converter', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16a4 4 0 100-8 4 4 0 000 8zm0-12v1m0 14v1m-7-8h1m14 0h1M5.636 5.636l.707.707m12.728 12.728l.707.707M5.636 18.364l.707-.707m12.728-12.728l.707-.707"></path></svg>`, label: 'Converter' },
-    { mode: 'finance', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>`, label: 'Finance' },
-    { mode: 'date', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`, label: 'Date' },
-    { mode: 'custom', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>`, label: 'Custom (Cloud)' },
+    { mode: 'standard', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>`, label: 'Standard Mode' },
+    { mode: 'ai', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13.18v4.24a2 2 0 001.106 1.79l4.588 2.294a2 2 0 001.812 0l4.588-2.294A2 2 0 0019 17.42V13.18M12 15.41v-5.8M12 3.12A2.25 2.25 0 0010.06 1.5H9.75a2.25 2.25 0 00-2.25 2.25v.49a2.25 2.25 0 00.182 1.01l.01.02.002.003a2.25 2.25 0 003.88 1.01l.01-.02.002-.003A2.25 2.25 0 0014.25 4.24v-.49A2.25 2.25 0 0012 1.5v0Z"></path></svg>`, label: 'AI Calculate Mode' },
+    { mode: 'scientific', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 11h2m10 0h2M3 15h4m10 0h4M2 12l2-2h16l2 2M16 4h4v4h-4zM8 12h8v8H8z"></path></svg>`, label: 'Scientific Mode' },
+    { mode: 'programmer', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>`, label: 'Programmer Mode' },
+    { mode: 'statistics', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15v4a2 2 0 002 2h14a2 2 0 002-2v-4M9 9l3 3m0 0l3-3m-3 3V3"></path></svg>`, label: 'Statistics Mode' },
+    { mode: 'matrix', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM10 4v16"></path></svg>`, label: 'Matrix Mode' },
+    { mode: 'graph', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>`, label: 'Graph Mode' },
+    { mode: 'converter', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16a4 4 0 100-8 4 4 0 000 8zm0-12v1m0 14v1m-7-8h1m14 0h1M5.636 5.636l.707.707m12.728 12.728l.707.707M5.636 18.364l.707-.707m12.728-12.728l.707-.707"></path></svg>`, label: 'Converter Mode' },
+    { mode: 'finance', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>`, label: 'Finance Mode' },
+    { mode: 'date', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`, label: 'Date Mode' },
+    { mode: 'custom', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>`, label: 'Custom (Cloud) Mode' },
 ];
 
 const layouts = {
-    standard: [['MC', 'MR', 'M+', 'M-'], ['C', '⌫', '%', '/'], ['7', '8', '9', '*'], ['4', '5', '6', '-'], ['1', '2', '3', '+'], ['0', '.', '√(', '=']],
-    ai: [['C', '⌫', '%', '/'], ['7', '8', '9', '*'], ['4', '5', '6', '-'], ['1', '2', '3', '+'], ['0', '.', '(', ')'], ['Ask AI']],
-    scientific: [['Deg', 'Rad'],['sin(', 'cos(', 'tan(', 'ln(', 'log('], ['C', '⌫', '(', ')', '^'], ['√(','x²', '1/x', '7', '8', '9', '/'], ['π', 'e', '|x|', '4', '5', '6', '*'], ['1', '2', '3', '-', '+'], ['0', '.', '+/-', '=']],
-    programmer: [['C', '⌫', 'DEC', 'HEX', 'BIN', 'OCT'], ['AND', 'OR', 'NOT', 'XOR', '<<', '>>'], ['7', '8', '9', '/'], ['4', '5', '6', '*'], ['1', '2', '3', '-'], ['A', 'B', 'C', '+'], ['D', 'E', 'F', '='], ['0', '.']],
-    converter: [['C', '⌫', 'km→m', 'm→km'], ['kg→g', 'g→kg', '°C→°F', '°F→°C'], ['L→mL', 'mL→L']],
-    finance: [['C', '⌫', '%', 'SI('], ['7', '8', '9', '/'], ['4', '5', '6', '*'], ['1', '2', '3', '-'], ['0', '.', 'CI('], [',', ')', '=']],
-    date: [['C', '⌫', 'Today', 'DaysBetween('],['7','8','9','-'],['4','5','6','/'],['1','2','3','+'],['0',',','.','=']],
-    graph: [['C', '⌫', '(', ')', '^'], ['x', 'sin(', 'cos(', 'tan('], ['√(', 'ln(', 'log(', '/'], ['7', '8', '9', '*'], ['4', '5', '6', '-'], ['1', '2', '3', '+'], ['0', '.', 'Plot']],
+    standard: [
+        ['C', '⌫', '%', '/'], 
+        ['7', '8', '9', '*'], 
+        ['4', '5', '6', '-'], 
+        ['1', '2', '3', '+'], 
+        ['0', '.', '=']
+    ],
+    ai: [
+        ['C', '⌫', '(', ')'], 
+        ['7', '8', '9', '*'], 
+        ['4', '5', '6', '-'], 
+        ['1', '2', '3', '+'], 
+        ['0', '.', '%', ''], 
+        ['Ask AI']
+    ],
+    scientific: [
+        ['Rad', 'Deg', 'x²', '^', '(', ')'], 
+        ['sin(', 'cos(', 'tan(', 'C', '⌫', '/'], 
+        ['log(', 'ln', '7', '8', '9', '*'], 
+        ['√(', '1/x', '4', '5', '6', '-'], 
+        ['π', 'e', '1', '2', '3', '+'], 
+        ['abs(', '+/-', '0', '.', '=']
+    ],
+    programmer: [
+        ['HEX', 'DEC', 'OCT', 'BIN', 'C', '⌫'],
+        ['A', 'B', 'AND', 'OR', 'XOR', 'NOT'],
+        ['C', 'D', '7', '8', '9', '/'],
+        ['E', 'F', '4', '5', '6', '*'],
+        ['(', ')', '1', '2', '3', '-'],
+        ['<<', '>>', '0', '.', '=', '+']
+    ],
+    statistics: [
+        ['μ()', 'σ()', 'σ²()', 'Σx()'],
+        ['C', '⌫', '(', ')'], 
+        ['7', '8', '9', 'n()'], 
+        ['4', '5', '6', ','], 
+        ['1', '2', '3', '-'], 
+        ['0', '.', '+', '=']
+    ],
+    matrix: [
+        ['C', '⌫', 'det()', 'inv()'], 
+        ['7', '8', '9', ','], 
+        ['4', '5', '6', '['], 
+        ['1', '2', '3', ']'], 
+        ['0', '.', '[[', ']]'],
+        ['=']
+    ],
+    converter: [
+        ['C', '⌫', 'km→m', 'm→km'], 
+        ['kg→g', 'g→kg', '°C→°F', '°F→°C'], 
+        ['L→mL', 'mL→L']
+    ],
+    finance: [
+        ['C', '⌫', '%', 'SI('], 
+        ['7', '8', '9', '/'], 
+        ['4', '5', '6', '*'], 
+        ['1', '2', '3', '-'], 
+        ['0', '.', 'CI('], 
+        [',', ')', '=']
+    ],
+    date: [
+        ['C', '⌫', 'Today', 'DaysBetween('],
+        ['7','8','9','-'],
+        ['4','5','6','/'],
+        ['1','2','3','+'],
+        ['0',',','.','=']
+    ],
+    graph: [
+        ['sin(', 'cos(', 'tan(', 'x'],
+        ['C', '⌫', '(', ')'],
+        ['7', '8', '9', '/'],
+        ['4', '5', '6', '*'],
+        ['1', '2', '3', '-'],
+        ['0', '.', '^', '+'],
+        ['Plot']
+    ],
     custom: [['C', '⌫', 'Save', 'Load']]
 };
+
+const instructionTitles = {
+    en: (icon, label) => `${icon} How to use ${label}`,
+    si: (icon, label) => `${icon} ${label} භාවිත කරන ආකාරය`,
+    ta: (icon, label) => `${icon} ${label} எவ்வாறு பயன்படுத்துவது`
+};
+
+const modeInstructions = {
+    standard: {
+        en: '<strong>Standard Mode:</strong><br>Perform basic arithmetic operations. Use the memory functions (MC, MR, M+, M-) to store and recall numbers.',
+        si: '<strong>සම්මත ප්‍රකාරය:</strong><br>මූලික ගණිතමය амал කරන්න. මතක ශ්‍රිත (MC, MR, M+, M-) භාවිතයෙන් අංක ගබඩා කර නැවත ලබා ගන්න.',
+        ta: '<strong>சாதாரண முறை:</strong><br>அடிப்படை எண்கணித செயல்பாடுகளைச் செய்யவும். நினைவக செயல்பாடுகளை (MC, MR, M+, M-) எண்களைச் சேமிக்கவும் நினைவுபடுத்தவும் பயன்படுத்தவும்.'
+    },
+    ai: {
+        en: '<strong>AI Mode:</strong><br>Type a question in natural language (e.g., "what is the square root of 81 plus 15% of 50") and press "Ask AI". The AI will calculate the answer.',
+        si: '<strong>AI ප්‍රකාරය:</strong><br>ස්වාභාවික භාෂාවෙන් ප්‍රශ්නයක් ටයිප් කර (උදා: "81 වර්ගමූලය සහ 50න් 15% එකතුව කීයද?") "Ask AI" ඔබන්න.',
+        ta: '<strong>AI முறை:</strong><br>இயற்கையான மொழியில் ஒரு கேள்வியை தட்டச்சு செய்து (உதாரணமாக, "81 இன் வர்க்கமூலம் மற்றும் 50 இன் 15% ஐக் கூட்டினால் என்ன?") "AIயிடம் கேள்" என்பதை அழுத்தவும்.'
+    },
+    scientific: {
+        en: '<strong>Scientific Mode:</strong><br>Access trigonometric (sin, cos, tan), logarithmic (ln, log), and other scientific functions. Use "Deg" and "Rad" to switch between degrees and radians.',
+        si: '<strong>විද්‍යාත්මක ප්‍රකාරය:</strong><br>ත්‍රිකෝණමිතික (sin, cos, tan), ලඝුගණක (ln, log) සහ වෙනත් විද්‍යාත්මක ශ්‍රිත භාවිත කරන්න. අංශක සහ රේඩියන අතර මාරු වීමට "Deg" සහ "Rad" භාවිත කරන්න.',
+        ta: '<strong>அறிவியல் முறை:</strong><br>முக்கோணவியல் (sin, cos, tan), மடக்கை (ln, log), மற்றும் பிற அறிவியல் செயல்பாடுகளை அணுகவும். டிகிரி மற்றும் ரேடியன்களுக்கு இடையில் மாற "Deg" மற்றும் "Rad" பயன்படுத்தவும்.'
+    },
+    programmer: {
+        en: '<strong>Programmer Mode:</strong><br>Perform bitwise operations (AND, OR, NOT, XOR) and convert numbers between decimal (DEC), hexadecimal (HEX), binary (BIN), and octal (OCT) bases.',
+        si: '<strong>ක්‍රමලේඛක ප්‍රකාරය:</strong><br>bitwise මෙහෙයුම් (AND, OR, NOT, XOR) සිදු කර දශම (DEC), ෂඩ් දශම (HEX), ද්විමය (BIN), සහ අෂ්ටක (OCT) පාද අතර අංක පරිවර්තනය කරන්න.',
+        ta: '<strong>புரோகிராமர் முறை:</strong><br>பிட்வாரியான செயல்பாடுகளை (AND, OR, NOT, XOR) செய்யவும் மற்றும் தசம (DEC), ஹெக்ஸாடெசிமல் (HEX), பைனரி (BIN), மற்றும் ஆக்டல் (OCT) தளங்களுக்கு இடையில் எண்களை மாற்றவும்.'
+    },
+     statistics: {
+        en: '<strong>Statistics Mode:</strong><br>Enter comma-separated data (e.g., 5,12,8,9). Use buttons like μ() to wrap your data and press =. Ex: <strong>μ(5,12,8,9)</strong> calculates the mean.',
+        si: '<strong>සංඛ්‍යාන ප්‍රකාරය:</strong><br>කොමාවෙන් වෙන් කළ දත්ත ඇතුළත් කරන්න (උදා: 5,12,8,9). ඔබේ දත්ත කාණ්ඩ කිරීමට μ() වැනි බොත්තම් භාවිත කර = ඔබන්න. උදා: <strong>μ(5,12,8,9)</strong> මගින් මධ්‍යන්‍යය ගණනය කරයි.',
+        ta: '<strong>புள்ளியியல் முறை:</strong><br>காற்புள்ளியால் பிரிக்கப்பட்ட தரவை உள்ளிடவும் (எ.கா., 5,12,8,9). உங்கள் தரவைச் சுற்றி μ() போன்ற பொத்தான்களைப் பயன்படுத்தி = ஐ அழுத்தவும். எ.கா: <strong>μ(5,12,8,9)</strong> சராசரியைக் கணக்கிடும்.'
+    },
+    matrix: {
+        en: '<strong>Matrix Mode:</strong><br>Enter a matrix in array format, e.g., [[1,2],[3,4]]. Use det() or inv() to wrap it, then press =. Ex: <strong>det([[1,2],[3,4]])</strong> finds the determinant.',
+        si: '<strong>න්‍යාස ප්‍රකාරය:</strong><br>න්‍යාසයක් array ආකාරයෙන් ඇතුළත් කරන්න, උදා: [[1,2],[3,4]]. එය වටා det() හෝ inv() යොදා = ඔබන්න. උදා: <strong>det([[1,2],[3,4]])</strong> මගින් නිශ්චායකය සොයයි.',
+        ta: '<strong>அணி முறை:</strong><br>அணியை வரிசை வடிவத்தில் உள்ளிடவும், எ.கா., [[1,2],[3,4]]. அதைச் சுற்றி det() அல்லது inv() ஐப் பயன்படுத்தி, பின்னர் = ஐ அழுத்தவும். எ.கா: <strong>det([[1,2],[3,4]])</strong> அணிக்கோவையைக் கண்டறிகிறது.'
+    },
+    graph: {
+        en: '<strong>Graph Mode:</strong><br>Enter a function of x (e.g., "2*x^2 - x + 5" or "sin(x)"). Press "Plot" to visualize the function on a graph.',
+        si: '<strong>ප්‍රස්තාර ප්‍රකාරය:</strong><br>x හි ශ්‍රිතයක් ඇතුළත් කරන්න (උදා: "2*x^2 - x + 5" හෝ "sin(x)"). ශ්‍රිතය ප්‍රස්තාරයක දෘශ්‍යමාන කිරීමට "Plot" ඔබන්න.',
+        ta: '<strong>வரைபட முறை:</strong><br>x இன் ஒரு செயல்பாட்டை உள்ளிடவும் (உதாரணமாக, "2*x^2 - x + 5" அல்லது "sin(x)"). செயல்பாட்டை ஒரு வரைபடத்தில் காட்சிப்படுத்த "Plot" ஐ அழுத்தவும்.'
+    },
+    converter: {
+        en: '<strong>Converter Mode:</strong><br>Enter a number, then press a conversion button (e.g., km→m) to convert between units of length, weight, temperature, and volume.',
+        si: '<strong>පරිවර්තක ප්‍රකාරය:</strong><br>අංකයක් ඇතුළත් කර, දිග, බර, උෂ්ණත්වය සහ පරිමාව ඒකක අතර පරිවර්තනය කිරීමට පරිවර්තන බොත්තමක් (උදා: km→m) ඔබන්න.',
+        ta: '<strong>மாற்றி முறை:</strong><br>ஒரு எண்ணை உள்ளிட்டு, நீளம், எடை, வெப்பநிலை மற்றும் கொள்ளளவு அலகுகளுக்கு இடையில் மாற்ற ஒரு மாற்று பொத்தானை (உதாரணமாக, km→m) அழுத்தவும்.'
+    },
+    finance: {
+        en: '<strong>Finance Mode:</strong><br>Calculate simple interest with <strong>SI(P,R,T)</strong> or compound interest with <strong>CI(P,R,T,N)</strong>. P=Principal, R=Rate, T=Time, N=Compounds/year.',
+        si: '<strong>මූල්‍ය ප්‍රකාරය:</strong><br><strong>SI(P,R,T)</strong> සමඟ සරල පොලිය හෝ <strong>CI(P,R,T,N)</strong> සමඟ චක්‍රීය පොලිය ගණනය කරන්න. P=මුදල, R=අනුපාතය, T=කාලය, N=වසරකට වාර ගණන.',
+        ta: '<strong>நிதி முறை:</strong><br><strong>SI(P,R,T)</strong> உடன் எளிய வட்டியையும் அல்லது <strong>CI(P,R,T,N)</strong> உடன் கூட்டு வட்டியையும் கணக்கிடவும். P=அசல், R=விகிதம், T=நேரம், N=ஆண்டுக்கு கூட்டப்படும் தடவைகள்.'
+    },
+    date: {
+        en: '<strong>Date Mode:</strong><br>Calculate the difference between two dates using <strong>DaysBetween(date1, date2)</strong>. Use YYYY-MM-DD format. "Today" gives the current date number.',
+        si: '<strong>දින ප්‍රකාරය:</strong><br><strong>DaysBetween(date1, date2)</strong> භාවිතයෙන් දින දෙකක් අතර වෙනස ගණනය කරන්න. YYYY-MM-DD ආකෘතිය භාවිත කරන්න. "Today" මඟින් වත්මන් දින අංකය ලබා දේ.',
+        ta: '<strong>தேதி முறை:</strong><br><strong>DaysBetween(date1, date2)</strong> ஐப் பயன்படுத்தி இரண்டு தேதிகளுக்கு இடையிலான வேறுபாட்டைக் கணக்கிடவும். YYYY-MM-DD வடிவமைப்பைப் பயன்படுத்தவும். "Today" தற்போதைய தேதி எண்ணைக் கொடுக்கும்.'
+    },
+    custom: {
+        en: '<strong>Custom (Cloud) Mode:</strong><br>Save your frequently used calculations or formulas to the cloud. Press "Save" to add the current expression, and "Load" to view your saved items.',
+        si: '<strong>අභිරුචි (වලාකුළු) ප්‍රකාරය:</strong><br>ඔබ නිතර භාවිත කරන ගණනය කිරීම් හෝ සූත්‍ර වලාකුළෙහි සුරකින්න. වත්මන් ප්‍රකාශනය එක් කිරීමට "Save" ඔබන්න, සහ ඔබ සුරකින ලද අයිතම බැලීමට "Load" ඔබන්න.',
+        ta: '<strong>தனிப்பயன் (கிளவுட்) முறை:</strong><br>நீங்கள் அடிக்கடி பயன்படுத்தும் கணக்கீடுகள் அல்லது சூத்திரங்களை கிளவுட்டில் சேமிக்கவும். தற்போதைய கோவையைச் சேர்க்க "Save" ஐ அழுத்தவும், மற்றும் நீங்கள் சேமித்த உருப்படிகளைப் பார்க்க "Load" ஐ அழுத்தவும்.'
+    }
+};
+
 
 // --- UI & THEME ---
 function showToast(message, type = 'success') { // types: success, error, info
@@ -311,12 +490,14 @@ const themeClasses = {
 };
 
 function applyTheme(theme) {
+    currentTheme = theme;
     const classes = themeClasses[theme];
     const oppositeClasses = themeClasses[theme === 'dark' ? 'light' : 'dark'];
 
     const swapClass = (el, prop) => el && el.classList.replace(oppositeClasses[prop], classes[prop]);
     
     swapClass(appBody, 'body'); swapClass(sidebar, 'sidebar'); swapClass(waterFrame, 'frame'); swapClass(calculator, 'calc');
+    swapClass(instructionsPanel, 'frame');
     swapClass(document.querySelector('.display'), 'display'); swapClass(exprEl, 'expr'); swapClass(resEl, 'result');
     if(historyEl.querySelector('h3')) swapClass(historyEl.querySelector('h3'), 'text');
     if(customListEl.querySelector('h3')) swapClass(customListEl.querySelector('h3'), 'result');
@@ -340,55 +521,83 @@ function applyTheme(theme) {
     
     renderHistory(window.historyData || []); renderCustomList();
 
+    const topButtons = [themeToggleBtn, voiceBtn, helpBtn, languageSelector];
     if (theme === 'dark') {
         moonIcon.classList.remove('hidden'); sunIcon.classList.add('hidden');
-        themeToggleBtn.classList.add('bg-gray-800'); themeToggleBtn.classList.remove('bg-gray-200');
-        voiceBtn.classList.add('bg-gray-800'); voiceBtn.classList.remove('bg-gray-200');
+        topButtons.forEach(btn => {
+            btn.classList.add('bg-gray-800', 'text-gray-400');
+            btn.classList.remove('bg-gray-200', 'text-gray-700');
+        });
     } else {
         moonIcon.classList.add('hidden'); sunIcon.classList.remove('hidden');
-        themeToggleBtn.classList.remove('bg-gray-800'); themeToggleBtn.classList.add('bg-gray-200');
-        voiceBtn.classList.remove('bg-gray-800'); voiceBtn.classList.add('bg-gray-200');
+        topButtons.forEach(btn => {
+            btn.classList.remove('bg-gray-800', 'text-gray-400');
+            btn.classList.add('bg-gray-200', 'text-gray-700');
+        });
     }
-    currentTheme = theme;
 }
 
 function renderKeys(mode) {
     const classes = themeClasses[currentTheme];
     keys.innerHTML = '';
     const isSpecialGrid = ['programmer', 'scientific'].includes(mode);
-    keys.className = 'keys grid gap-3 flex-1 overflow-y-auto ' + (isSpecialGrid ? 'grid-cols-6' : 'grid-cols-4');
-    if (['graph', 'ai'].includes(mode)) keys.className = 'keys grid gap-3 flex-1 overflow-y-auto grid-cols-4';
-    if (['programmer'].includes(mode)) keys.className = 'keys grid grid-cols-6 grid-rows-4 gap-2 flex-1 overflow-y-auto';
+    let gridClass = 'grid-cols-4';
+    if(isSpecialGrid) gridClass = 'grid-cols-6';
+    if(mode === 'ai') gridClass = 'grid-cols-4';
+    if(mode === 'statistics') gridClass = 'grid-cols-4';
+    if(mode === 'matrix') gridClass = 'grid-cols-4';
+    if(mode === 'graph') gridClass = 'grid-cols-4';
+
+
+    keys.className = `keys grid ${gridClass} gap-2`;
 
     const layout = layouts[mode] || layouts['standard'];
     layout.flat().forEach(val => {
-        if (!val) return;
+        if (!val) {
+            keys.appendChild(document.createElement('div')); // Placeholder for grid
+            return;
+        };
         let btn = document.createElement('button');
-        btn.className = 'key p-3 rounded-xl text-xl font-semibold shadow-md transition duration-150';
-        btn.classList.add(classes.key_normal, currentTheme === 'dark' ? 'text-white' : 'text-gray-800');
-
-        if (['C', '⌫', 'MC', 'MR'].includes(val)) btn.classList.replace(classes.key_normal, classes.key_action);
-        if (['/', '*', '-', '+', '^', '%'].includes(val)) btn.classList.replace(classes.key_normal, classes.key_op);
-        if (val === 'C') btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
-        if (val === '=') btn.classList.replace(classes.key_normal, classes.key_equals);
-        if (['DEC', 'HEX', 'BIN', 'OCT', 'Save', 'Load', 'x', 'M+', 'M-', 'Deg', 'Rad', 'Today', 'DaysBetween('].includes(val) || val.includes('(') || val.includes('→') || ['sin(','cos(','tan(','ln(','log(','√(','x²','1/x','π','e','|x|','+/-'].includes(val)) {
-            btn.classList.replace(classes.key_normal, classes.key_func);
-            btn.classList.add(currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700');
-        }
-        if (val === 'Plot' || val === 'Ask AI') { 
-            btn.classList.replace(classes.key_normal, 'bg-emerald-600'); 
-            btn.classList.add('hover:bg-emerald-500', 'text-white');
-        }
+        btn.className = 'key p-2.5 rounded-xl text-lg font-semibold shadow-md transition duration-150 flex items-center justify-center';
         
-        if (val === '=') { 
-          if(mode === 'programmer') btn.classList.add('row-span-2');
-          else btn.classList.add('col-span-2');
-        }
-        if (val === 'Ask AI') {
-            btn.classList.add('col-span-4');
-        }
+        // Determine button type and base color
+        let keyTypeClass, textColorClass;
+        
+        const isAction = ['C', '⌫', 'MC', 'MR'].includes(val);
+        const isOp = ['/', '*', '-', '+', '^', '%'].includes(val);
+        const isFunc = ['DEC', 'HEX', 'BIN', 'OCT', 'Save', 'Load', 'x', 'M+', 'M-', 'Deg', 'Rad', 'Today', 'DaysBetween('].includes(val) || val.includes('(') || val.includes('→') || val.includes('()') || ['sin(','cos(','tan(','ln(','log(','√(','x²','1/x','π','e','abs(','+/-','[[', ']]', '[', ']'].includes(val);
+        const isEquals = val === '=';
 
-        btn.textContent = val; btn.dataset.value = val;
+        if(isOp) keyTypeClass = classes.key_op;
+        else if(isAction) keyTypeClass = classes.key_action;
+        else if(isFunc) keyTypeClass = classes.key_func;
+        else if(isEquals) keyTypeClass = classes.key_equals;
+        else keyTypeClass = classes.key_normal;
+
+        textColorClass = (isFunc) 
+            ? (currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700')
+            : (currentTheme === 'dark' ? 'text-white' : 'text-gray-800');
+
+        btn.classList.add(keyTypeClass, textColorClass);
+        
+        // Overrides for specific buttons
+        if (val === 'C') btn.classList.replace(keyTypeClass, 'bg-red-600'), btn.classList.replace(textColorClass, 'text-white');
+        if (val === 'Plot' || val === 'Ask AI') {
+            btn.classList.replace(keyTypeClass, 'bg-emerald-600'), btn.classList.replace(textColorClass, 'text-white');
+        }
+       
+        if (val === '=') { 
+          if(mode === 'programmer') {
+             // No special span for programmer =
+          } else if (mode === 'matrix') {
+             btn.classList.add('col-span-4');
+          } else if (!['date', 'finance', 'statistics', 'matrix'].includes(mode)) {
+             btn.classList.add('col-span-2');
+          }
+        }
+        if (val === 'Ask AI' || val === 'Plot') btn.classList.add('col-span-4');
+        if (val === 'σ²()') btn.innerHTML = 'σ<sup class="-top-1">2</sup>()'; else btn.textContent = val;
+        btn.dataset.value = val;
         keys.appendChild(btn);
     });
 }
@@ -413,26 +622,148 @@ function render(){
     graphContainer.classList.toggle('hidden', currentMode !== 'graph');
 }
 
-// --- CORE CALCULATION LOGIC ---
+// --- SPECIALIZED CALCULATION LOGIC ---
+
+// Statistics Helpers
+const stats = {
+    parse: (str) => {
+        if (!str) return [];
+        return str.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+    },
+    sum: (arr) => arr.reduce((acc, val) => acc + val, 0),
+    mean: (arr) => arr.length === 0 ? 0 : stats.sum(arr) / arr.length,
+    variance: (arr) => {
+        if (arr.length < 2) return 0;
+        const m = stats.mean(arr);
+        return stats.sum(arr.map(x => (x - m) ** 2)) / (arr.length -1);
+    },
+    stddev: (arr) => Math.sqrt(stats.variance(arr)),
+};
+
+// Matrix Helpers
+const matrix = {
+    parse: (str) => JSON.parse(str.replace(/\[/g, '[').replace(/\]/g, ']')),
+    det: (m) => {
+        if (m.length === 2) return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+        if (m.length === 3) return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1]) - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0]) + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+        throw new Error('Only 2x2 or 3x3 matrix supported for determinant');
+    },
+    inv: (m) => {
+        if (m.length !== 2) throw new Error('Only 2x2 matrix supported for inverse');
+        const d = matrix.det(m);
+        if (d === 0) throw new Error('Matrix not invertible');
+        return [[m[1][1]/d, -m[0][1]/d], [-m[1][0]/d, m[0][0]/d]];
+    }
+};
+
+// Date Helpers
+const dateHelpers = {
+    parseDate: (dateStr) => {
+        const date = new Date(dateStr.trim());
+        return isNaN(date.getTime()) ? null : date;
+    },
+    daysBetween: (date1Str, date2Str) => {
+        const date1 = dateHelpers.parseDate(date1Str);
+        const date2 = dateHelpers.parseDate(date2Str);
+        if (date1 && date2) {
+            const diffTime = Math.abs(date2 - date1);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+        return 'Error: Invalid Date';
+    }
+};
+
+function preProcessExpression(expr) {
+    let processed = expr;
+
+    // Finance: SI(P,R,T) and CI(P,R,T,N)
+    processed = processed.replace(/(SI|CI)\((.*?)\)/g, (match, func, args) => {
+        try {
+            const params = args.split(',').map(Number);
+            if (params.some(isNaN)) return 'Error';
+            if (func === 'SI') {
+                if (params.length !== 3) return 'Error: SI(P,R,T)';
+                const [p, r, t] = params;
+                return (p * (r / 100) * t); // Simple Interest
+            }
+            if (func === 'CI') {
+                if (params.length !== 4) return 'Error: CI(P,R,T,N)';
+                const [p, r, t, n] = params;
+                const interest = p * Math.pow((1 + (r / 100) / n), n * t) - p; // Compound Interest
+                return interest;
+            }
+        } catch (e) { return 'Error'; }
+        return match;
+    });
+
+    // Date: DaysBetween(date1, date2)
+    processed = processed.replace(/DaysBetween\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g, (match, date1, date2) => {
+         return dateHelpers.daysBetween(date1.replace(/'|"/g, ''), date2.replace(/'|"/g, ''));
+    });
+
+    // Statistics & Matrix (existing logic)
+    processed = processed.replace(/(μ|σ²|σ|Σx|n|det|inv)\((.*?)\)/g, (match, func, args) => {
+        try {
+            switch (func) {
+                case 'μ': return stats.mean(stats.parse(args));
+                case 'σ': return stats.stddev(stats.parse(args));
+                case 'σ²': return stats.variance(stats.parse(args));
+                case 'Σx': return stats.sum(stats.parse(args));
+                case 'n': return stats.parse(args).length;
+                case 'det': return matrix.det(matrix.parse(args));
+                case 'inv': return `[[${matrix.inv(matrix.parse(args)).join('],[')}]]`;
+                default: return match;
+            }
+        } catch (e) {
+            console.error(`Error in ${func}:`, e);
+            return 'Error';
+        }
+    });
+
+    return processed;
+}
+
 function evaluateExpression(expr){
     try {
-        let safeExpr = expr.replace(/π/g, 'Math.PI').replace(/e/g, 'Math.E')
+        let processedExpr = preProcessExpression(expr);
+        
+        // Handle scientific mode angle unit
+        if (currentMode === 'scientific' && angleUnit === 'deg') {
+             processedExpr = processedExpr.replace(/(sin|cos|tan)\(([^)]+)\)/g, (match, func, content) => {
+                // Evaluate content inside brackets first, then convert to radians
+                try {
+                    const innerValue = evaluateExpression(content);
+                    if (isNaN(innerValue)) return 'Error';
+                    return `Math.${func}(${innerValue} * Math.PI / 180)`;
+                } catch(e) {
+                    return 'Error';
+                }
+            });
+        }
+        
+        let safeExpr = processedExpr.replace(/π/g, 'Math.PI').replace(/e/g, 'Math.E')
             .replace(/√\(/g, 'Math.sqrt(').replace(/ln\(/g, 'Math.log(')
             .replace(/log\(/g, 'Math.log10(').replace(/\^/g, '**')
             .replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(')
             .replace(/tan\(/g, 'Math.tan(').replace(/%/g, '/100')
-            .replace(/\|x\|/g, 'Math.abs(x)');
+            .replace(/abs\(/g, 'Math.abs(');
 
         if (currentMode === 'programmer') {
-            safeExpr = safeExpr.replace(/AND/g, '&').replace(/OR/g, '|').replace(/XOR/g, '^').replace(/NOT/g, '~').replace(/<</g, '<<').replace(/>>/g, '>>');
-            return (eval(safeExpr) >>> 0).toString(16).toUpperCase();
+            try {
+                safeExpr = safeExpr.replace(/AND/g, '&').replace(/OR/g, '|').replace(/XOR/g, '^').replace(/NOT/g, '~').replace(/<</g, '<<').replace(/>>/g, '>>');
+                return eval(safeExpr);
+            } catch(e) {
+                return "Error";
+            }
         }
+        
         return Function('"use strict";return (' + safeExpr + ')')();
     } catch (e) {
         console.error("Evaluation Error:", e);
         return 'Error';
     }
 }
+
 
 // --- AI CALCULATION ---
 async function calculateWithAI(userQuery) {
@@ -531,7 +862,7 @@ function setupSpeechRecognition() {
     }
     recognition = new SpeechRecognition();
     recognition.continuous = false;
-    recognition.lang = 'en-US';
+    recognition.lang = languageSelector.value;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -547,26 +878,45 @@ function setupSpeechRecognition() {
 
 function processVoiceCommand(command) {
     let processed = command
-        .replace(/plus/g, '+').replace(/minus/g, '-').replace(/times|multiply/g, '*')
-        .replace(/divided by/g, '/').replace(/point/g, '.').replace(/open bracket/g, '(')
-        .replace(/close bracket/g, ')');
+        .replace(/ප්ලස්|එකතු කිරීම|plus/g, '+').replace(/මයිනස්|අඩු කිරීම|minus/g, '-')
+        .replace(/ටයිම්ස්|ගුණ කිරීම|times|multiply/g, '*')
+        .replace(/ඩිවයිඩඩ් බයි|බෙදීම|divided by/g, '/').replace(/පොයින්ට්|point/g, '.')
+        .replace(/ඕපන් බ්‍රැකට්|open bracket/g, '(').replace(/ක්ලෝස් බ්‍රැකට්|close bracket/g, ')');
 
-    if (processed.includes('equals') || processed.includes('equal to')) {
+    if (processed.includes('ඊක්වල්ස්') || processed.includes('සමානයි') || processed.includes('equals') || processed.includes('equal to')) {
         const actionBtn = currentMode === 'ai' ? '[data-value="Ask AI"]' : '[data-value="="]';
         document.querySelector(actionBtn)?.click(); return;
     }
-    if (processed.includes('clear')) { document.querySelector('[data-value="C"]')?.click(); return; }
-    if (processed.includes('backspace') || processed.includes('delete')) { document.querySelector('[data-value="⌫"]')?.click(); return; }
+    if (processed.includes('ක්ලියර්') || processed.includes('clear')) { document.querySelector('[data-value="C"]')?.click(); return; }
+    if (processed.includes('බැක්ස්පේස්') || processed.includes('ඩිලීට්') || processed.includes('backspace') || processed.includes('delete')) { document.querySelector('[data-value="⌫"]')?.click(); return; }
 
-    processed = processed.replace(/[^0-9+\-*/().^x\s]/g, '');
+    processed = processed.replace(/[^0-9+\-*/().,\[\]^x\s]/g, '');
     expression += processed;
     render();
 }
+
+function updateInstructions(mode) {
+    const langCode = languageSelector.value.split('-')[0]; // e.g., 'en-US' -> 'en'
+    const lang = modeInstructions[mode]?.[langCode] ? langCode : 'en'; // fallback to English
+
+    const menuItem = menuItems.find(item => item.mode === mode);
+    if (menuItem) {
+        instructionsTitle.innerHTML = instructionTitles[lang](menuItem.icon, menuItem.label);
+    }
+    instructionsContent.innerHTML = (modeInstructions[mode] && modeInstructions[mode][lang]) 
+        ? modeInstructions[mode][lang] 
+        : 'Instructions not available in the selected language.';
+}
+
 
 // --- EVENT HANDLERS ---
 function handleKeyClick(e) {
     const btn = e.target.closest('button'); if (!btn) return;
     const val = btn.dataset.value;
+
+    const wrapInFunc = (func) => {
+        expression = `${func.slice(0, -1)}${expression})`;
+    }
 
     const actions = {
         'C': () => { expression = ''; resEl.textContent = '0'; },
@@ -581,8 +931,27 @@ function handleKeyClick(e) {
         'M-': () => { memory -= Number(resEl.textContent) || 0; showToast(`Subtracted from Memory. M=${memory}`); },
         'x²': () => expression += '^2',
         '1/x': () => expression += '1/',
-        '|x|': () => expression += 'abs(',
         '+/-': () => expression += '(-',
+        'μ()': () => wrapInFunc('μ()'),
+        'σ()': () => wrapInFunc('σ()'),
+        'σ²()': () => wrapInFunc('σ²()'),
+        'Σx()': () => wrapInFunc('Σx()'),
+        'n()': () => wrapInFunc('n()'),
+        'det()': () => wrapInFunc('det()'),
+        'inv()': () => wrapInFunc('inv()'),
+        'Deg': () => { angleUnit = 'deg'; showToast('Angle unit: Degrees', 'info'); },
+        'Rad': () => { angleUnit = 'rad'; showToast('Angle unit: Radians', 'info'); },
+        'HEX': () => { try { resEl.textContent = '0x' + parseInt(resEl.textContent).toString(16).toUpperCase(); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } },
+        'DEC': () => { try { resEl.textContent = parseInt(resEl.textContent).toString(10); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } },
+        'BIN': () => { try { resEl.textContent = '0b' + parseInt(resEl.textContent).toString(2); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } },
+        'OCT': () => { try { resEl.textContent = '0o' + parseInt(resEl.textContent).toString(8); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } },
+        'Today': () => {
+             const today = new Date();
+             const yyyy = today.getFullYear();
+             const mm = String(today.getMonth() + 1).padStart(2, '0');
+             const dd = String(today.getDate()).padStart(2, '0');
+             expression += `${yyyy}-${mm}-${dd}`;
+        },
     };
 
     if (actions[val]) { actions[val](); } 
@@ -594,10 +963,11 @@ function handleKeyClick(e) {
 function handleEquals() {
     if (!expression) return;
     let res = evaluateExpression(expression);
-    if (res.toString().includes('Error') || (isNaN(res) && typeof res !== 'string')) {
+    if (res === undefined || res === null || res.toString().includes('Error')) {
         resEl.textContent = 'Error';
     } else {
-        resEl.textContent = typeof res === 'number' ? parseFloat(res.toFixed(8)) : res.toString();
+        res = (typeof res === 'number' && Math.abs(res) > 1e-8) ? parseFloat(res.toPrecision(10)) : res;
+        resEl.textContent = res.toString();
         pushHistory(expression, resEl.textContent);
     }
     expression = resEl.textContent.includes('Error') ? '' : resEl.textContent;
@@ -627,6 +997,18 @@ function initializeApp() {
         menuContainer.appendChild(btn);
     });
 
+    const languages = {
+        'en-US': 'English (US)', 'si-LK': 'සිංහල (Sri Lanka)', 'ta-LK': 'தமிழ் (Sri Lanka)', 'hi-IN': 'हिन्दी (India)',
+        'es-ES': 'Español (España)', 'fr-FR': 'Français (France)', 'de-DE': 'Deutsch (Deutschland)',
+        'ja-JP': '日本語 (Japan)', 'ru-RU': 'Русский (Россия)', 'ar-SA': 'العربية (SA)'
+    };
+    for (const [code, name] of Object.entries(languages)) {
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = name;
+        languageSelector.appendChild(option);
+    }
+
     renderKeys('standard');
     applyTheme('dark');
     setupSpeechRecognition();
@@ -637,6 +1019,46 @@ function initializeApp() {
     sidebarToggle.addEventListener('click', toggleSidebarWidth);
     copyBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(resEl.textContent).then(() => showToast('Result Copied!', 'success'), () => showToast('Copy Failed!', 'error'));
+    });
+    
+    languageSelector.addEventListener('change', () => {
+        if (recognition) {
+            recognition.lang = languageSelector.value;
+            showToast(`Voice language set to ${languageSelector.options[languageSelector.selectedIndex].text}`, 'info');
+        }
+        if (isHelpPanelVisible) {
+            updateInstructions(currentMode);
+        }
+    });
+    
+    const toggleHelpPanel = (show) => {
+        isHelpPanelVisible = show;
+        if (show) {
+            updateInstructions(currentMode);
+            instructionsModalOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            instructionsPanel.classList.remove('scale-95', 'opacity-0');
+        } else {
+            instructionsPanel.classList.add('scale-95', 'opacity-0');
+            instructionsModalOverlay.classList.add('opacity-0');
+            setTimeout(() => {
+                instructionsModalOverlay.classList.add('pointer-events-none');
+            }, 300); // Wait for transition to finish
+        }
+    };
+
+    helpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleHelpPanel(true);
+    });
+    closeHelpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleHelpPanel(false);
+    });
+
+    instructionsModalOverlay.addEventListener('click', (e) => {
+        if (e.target === instructionsModalOverlay) {
+            toggleHelpPanel(false);
+        }
     });
 
     menuContainer.addEventListener('click', e => {
@@ -652,6 +1074,7 @@ function initializeApp() {
             sidebar.querySelectorAll('button.menu-btn').forEach(b => b.classList.remove('active', classes.menu_active));
             btn.classList.add('active', classes.menu_active);
             currentMode = btn.dataset.mode;
+            if (isHelpPanelVisible) updateInstructions(currentMode);
             expression = ''; resEl.textContent = '0';
             renderKeys(currentMode);
             keys.style.opacity = '1'; keys.style.transform = 'translateY(0)';
@@ -661,10 +1084,17 @@ function initializeApp() {
 
     window.addEventListener('keydown', e => {
         const keyMap = { 'Enter': currentMode === 'ai' ? 'Ask AI' : '=', 'Escape': 'C', 'Backspace': '⌫' };
-        const targetVal = keyMap[e.key] || (('0123456789+-*/().%^x').includes(e.key) ? e.key : null);
+        const targetVal = keyMap[e.key] || (('0123456789+-*/().,[]%^x').includes(e.key) ? e.key : null);
         if (targetVal) {
             e.preventDefault();
-            document.querySelector(`[data-value="${targetVal}"]`)?.click();
+            const button = document.querySelector(`[data-value="${targetVal}"]`);
+            if (button) {
+                button.classList.add('key-pressed');
+                button.addEventListener('animationend', () => {
+                    button.classList.remove('key-pressed');
+                }, { once: true });
+                button.click();
+            }
         }
     });
 
