@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Standard Calculator (Upgraded & Final Fix)</title>
+<title>Enhanced Calculator with Animations</title>
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <!-- Chart.js for Graph Mode -->
@@ -13,47 +13,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Segoe UI", Roboto, "Noto Sans Sinhala", sans-serif;}
 
-/* --- LOGIN PAGE UI ENHANCEMENTS (NEW) --- */
+/* --- BACKGROUND & UI ENHANCEMENTS --- */
 :root{--accent: #8b5cf6; --accent-2:#06b6d4}
-.blob{position:absolute;z-index:-1;filter:blur(80px);opacity:0.6;mix-blend-mode:screen;transform:translateZ(0)}
+.blob{position:absolute;z-index:-1;filter:blur(100px);opacity:0.5;mix-blend-mode:screen;transform:translateZ(0);transition: all 1s ease-in-out;}
 .blob.one{width:450px;height:450px;border-radius:50%;left:-150px;top:-100px;background:linear-gradient(135deg,var(--accent),#4f46e5)}
 .blob.two{width:380px;height:380px;border-radius:50%;right:-120px;bottom:-150px;background:linear-gradient(135deg,var(--accent-2),#3b82f6)}
-@keyframes floaty{0%{transform:translateY(0)}50%{transform:translateY(-15px)}100%{transform:translateY(0)}}
-.floaty{animation:floaty 8s ease-in-out infinite}
+@keyframes floaty{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-20px) rotate(10deg)}100%{transform:translateY(0) rotate(0deg)}}
+.floaty{animation:floaty 12s ease-in-out infinite}
 
+/* --- NEW & IMPROVED ANIMATIONS --- */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes icon-pop { 0% { transform: scale(1); } 50% { transform: scale(1.3) rotate(-10deg); } 100% { transform: scale(1) rotate(0deg); } }
+@keyframes result-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mic-pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+@keyframes key-press-animation { 0% { transform: scale(1); } 50% { transform: scale(0.92); box-shadow: inset 0 3px 6px rgba(0,0,0,0.2); } 100% { transform: scale(1); } }
+@keyframes content-slide-in { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes content-slide-out { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-15px); } }
+@keyframes sidebar-label-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
-/* --- ANIMATIONS --- */
-@keyframes icon-pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3) rotate(-10deg); }
-  100% { transform: scale(1) rotate(0deg); }
-}
+.animate-load-main { animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both; }
+.animate-load-controls { animation: fadeInDown 0.6s ease-out 0.4s both; }
 .icon-animate { animation: icon-pop 0.3s ease-in-out; }
-@keyframes result-fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 .result-animate { animation: result-fade-in 0.3s ease-out; }
-@keyframes mic-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
 .mic-active { animation: mic-pulse 1.5s infinite; }
-@keyframes key-press-animation {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.92); box-shadow: inset 0 3px 6px rgba(0,0,0,0.2); }
-  100% { transform: scale(1); }
-}
-.key-pressed {
-  animation: key-press-animation 0.2s ease-out;
-}
+.key-pressed { animation: key-press-animation 0.2s ease-out; }
+.content-enter { animation: content-slide-in 0.3s ease-out forwards; }
+.content-exit { animation: content-slide-out 0.3s ease-out forwards; }
+.sidebar-label-animate { opacity: 0; animation: sidebar-label-in 0.4s ease-out forwards; }
 
 /* --- BASE & COMMON STYLES --- */
 #sidebar { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); } 
 #keys.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
 #keys.grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
-.key { transition: all 0.1s ease-out; user-select: none; }
+.key { transition: all 0.15s ease-out; user-select: none; }
+.key:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .key:active { transform: scale(0.92); box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3); }
 #keys { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
 .menu-btn { transition: background-color 0.2s, color 0.2s, transform 0.1s; }
@@ -139,7 +133,7 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 
 <body class="body-dark flex min-h-screen" id="appBody">
 
-<!-- Animated Blobs (NEW) -->
+<!-- Animated Blobs -->
 <div class="blob one floaty" aria-hidden="true"></div>
 <div class="blob two floaty" aria-hidden="true"></div>
 
@@ -168,7 +162,7 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
     <div id="topControls" class="absolute top-4 right-4 md:top-10 md:right-10 flex items-center space-x-3 z-10">
         <!-- Language Selector -->
         <div class="relative">
-            <select id="languageSelector" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800 text-gray-400 appearance-none pr-8 focus:outline-none cursor-pointer text-sm">
+            <select id="languageSelector" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800/50 text-gray-400 appearance-none pr-8 focus:outline-none cursor-pointer text-sm backdrop-blur-sm">
                 <!-- Options will be populated by JS -->
             </select>
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
@@ -176,18 +170,17 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
             </div>
         </div>
         
-        <button id="voiceBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800" aria-label="Activate Voice Command">
+        <button id="voiceBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800/50 backdrop-blur-sm" aria-label="Activate Voice Command">
             <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v2a3 3 0 01-3 3z"></path></svg>
         </button>
-        <button id="themeToggleBtn" class="p-3 rounded-full shadow-lg transition duration-200" aria-label="Toggle Dark/Light Mode">
+        <button id="themeToggleBtn" class="p-3 rounded-full shadow-lg transition duration-200 backdrop-blur-sm" aria-label="Toggle Dark/Light Mode">
             <svg id="moonIcon" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.903A7.5 7.5 0 0110 15a7.5 7.5 0 01-7.293-8.097 8 8 0 0014.586 8.097z"></path></svg>
             <svg id="sunIcon" class="w-6 h-6 text-yellow-500 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 4.364a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707zM3 10a1 1 0 011-1h1a1 1 0 110 2H4a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-4.95-.5a1 1 0 00-1.414 0l-.707.707a1 1 0 101.414 1.414l.707-.707a1 1 0 000-1.414zM4 15a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm14 0a1 1 0 01-1-1h-1a1 1 0 110 2h1a1 1 0 011-1zm-9.364 1.636a1 1 0 00-.707 1.707l.707.707a1 1 0 101.414-1.414l-.707-.707a1 1 0 00-.707-.293zM5.929 15.636a1 1 0 00-1.414 1.414l.707.707a1 1 0 101.414-1.414l-.707-.707z" clip-rule="evenodd"></path></svg>
         </button>
-        <button id="helpBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800" aria-label="Show Help">
+        <button id="helpBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800/50 backdrop-blur-sm" aria-label="Show Help">
             <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </button>
-        <!-- Logout Button (NEW) -->
-        <button id="logoutBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-red-600/50 hover:bg-red-600" aria-label="Logout">
+        <button id="logoutBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-red-600/50 hover:bg-red-600 backdrop-blur-sm" aria-label="Logout">
             <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
         </button>
     </div>
@@ -290,6 +283,7 @@ const sidebar = getEl('sidebar');
 const menuContainer = getEl('menuContainer');
 const sidebarToggle = getEl('sidebarToggle');
 const waterFrame = getEl('waterFrame');
+const topControls = getEl('topControls'); // <-- Added for animation
 const graphContainer = getEl('graphContainer');
 const graphCanvas = getEl('graphCanvas');
 const themeToggleBtn = getEl('themeToggleBtn');
@@ -327,7 +321,7 @@ let expression = '';
 let currentMode = 'standard';
 let currentTheme = 'dark';
 let graphChart = null;
-let memory = 0;
+let memory = 0; // <-- Added for Memory functions
 let isSidebarExpanded = false; 
 let recognition;
 let isListening = false;
@@ -352,7 +346,8 @@ const menuItems = [
 
 const layouts = {
     photomath: [],
-    standard: [['C','⌫','%','/'],['7','8','9','*'],['4','5','6','-'],['1','2','3','+'],['0','.','=']],
+    // Standard mode updated with Memory functions
+    standard: [['MC','MR','M+','M-'],['C','⌫','%','/'],['7','8','9','*'],['4','5','6','-'],['1','2','3','+'],['0','.','=']],
     ai: [['C','⌫','(',')'],['7','8','9','*'],['4','5','6','-'],['1','2','3','+'],['0','.','%',''],['Ask AI']],
     scientific: [['Rad','Deg','x²','^','(',')'],['sin(','cos(','tan(','C','⌫','/'],['log(','ln','7','8','9','*'],['√(','1/x','4','5','6','-'],['π','e','1','2','3','+'],['abs(','+/-','0','.','=']],
     programmer: [['HEX','DEC','OCT','BIN','C','⌫'],['A','B','AND','OR','XOR','NOT'],['C','D','7','8','9','/'],['E','F','4','5','6','*'],['(',')','1','2','3','-'],['<<','>>','0','.','=','+']],
@@ -375,7 +370,7 @@ const modeInstructions = {
     standard: { en: '<strong>Standard Mode:</strong><br>Perform basic arithmetic operations. Use the memory functions (MC, MR, M+, M-) to store and recall numbers.', si: '<strong>සම්මත ප්‍රකාරය:</strong><br>මූලික ගණිතමය амал කරන්න. මතක ශ්‍රිත (MC, MR, M+, M-) භාවිතයෙන් අංක ගබඩා කර නැවත ලබා ගන්න.', ta: '<strong>சாதாரண முறை:</strong><br>அடிப்படை எண்கணித செயல்பாடுகளைச் செய்யவும். நினைவக செயல்பாடுகளை (MC, MR, M+, M-) எண்களைச் சேமிக்கவும் நினைவுபடுத்தவும் பயன்படுத்தவும்.'},
     ai: { en: '<strong>AI Mode:</strong><br>Type a question in natural language (e.g., "what is the square root of 81 plus 15% of 50") and press "Ask AI". The AI will calculate the answer.', si: '<strong>AI ප්‍රකාරය:</strong><br>ස්වාභාවික භාෂාවෙන් ප්‍රශ්නයක් ටයිප් කර (උදා: "81 වර්ගමූලය සහ 50න් 15% එකතුව කීයද?") "Ask AI" ඔබන්න.', ta: '<strong>AI முறை:</strong><br>இயற்கையான மொழியில் ஒரு கேள்வியை தட்டச்சு செய்து (உதாரணமாக, "81 இன் வர்க்கமூலம் மற்றும் 50 இன் 15% ஐக் கூட்டினால் என்ன?") "AIயிடம் கேள்" என்பதை அழுத்தவும்.'},
     scientific: { en: '<strong>Scientific Mode:</strong><br>Access trigonometric (sin, cos, tan), logarithmic (ln, log), and other scientific functions. Use "Deg" and "Rad" to switch between degrees and radians.', si: '<strong>විද්‍යාත්මක ප්‍රකාරය:</strong><br>ත්‍රිකෝණමිතික (sin, cos, tan), ලඝුගණක (ln, log) සහ වෙනත් විද්‍යාත්මක ශ්‍රිත භාවිත කරන්න. අංශක සහ රේඩියන අතර මාරු වීමට "Deg" සහ "Rad" භාවිත කරන්න.', ta: '<strong>அறிவியல் முறை:</strong><br>முக்கோணவியல் (sin, cos, tan), மடக்கை (ln, log), மற்றும் பிற அறிவியல் செயல்பாடுகளை அணுகவும். டிகிரி மற்றும் ரேடியன்களுக்கு இடையில் மாற "Deg" மற்றும் "Rad" பயன்படுத்தவும்.'},
-    programmer: { en: '<strong>Programmer Mode:</strong><br>Perform bitwise operations (AND, OR, NOT, XOR) and convert numbers between decimal (DEC), hexadecimal (HEX), binary (BIN), and octal (OCT) bases.', si: '<strong>ක්‍රමලේඛක ප්‍රකාරය:</strong><br>bitwise මෙහෙයුම් (AND, OR, NOT, XOR) සිදු කර දශම (DEC), ෂඩ් දශම (HEX), ද්විමය (BIN), සහ අෂ්ටක (OCT) පාද අතර අංක පරිවර්තනය කරන්න.', ta: '<strong>புரோகிராமர் முறை:</strong><br>பிட்வாரியான செயல்பாடுகளை (AND, OR, NOT, XOR) செய்யவும் மற்றும் தசம (DEC), ஹெக்ஸாடெசிமல் (HEX), பைனரி (BIN), மற்றும் ஆக்டல் (OCT) தளங்களுக்கு இடையில் எண்களை மாற்றவும்.'},
+    programmer: { en: '<strong>Programmer Mode:</strong><br>Perform bitwise operations (AND, OR, NOT, XOR) and convert numbers between decimal (DEC), hexadecimal (HEX), binary (BIN), and octal (OCT) bases.', si: '<strong>ක්‍රමලේඛක ප්‍රකාරය:</strong><br>bitwise මෙහෙයුම් (AND, OR, NOT, XOR) සිදු කර දශම (DEC), ෂඩ් දශම (HEX), ද්විමය (BIN), සහ අෂ්ଟක (OCT) පාද අතර අංක පරිවර්තනය කරන්න.', ta: '<strong>புரோகிராமர் முறை:</strong><br>பிட்வாரியான செயல்பாடுகளை (AND, OR, NOT, XOR) செய்யவும் மற்றும் தசம (DEC), ஹெக்ஸாடெசிமல் (HEX), பைனரி (BIN), மற்றும் ஆக்டல் (OCT) தளங்களுக்கு இடையில் எண்களை மாற்றவும்.'},
     statistics: { en: '<strong>Statistics Mode:</strong><br>Enter comma-separated data (e.g., 5,12,8,9). Use buttons like μ() to wrap your data and press =. Ex: <strong>μ(5,12,8,9)</strong> calculates the mean.', si: '<strong>සංඛ්‍යාන ප්‍රකාරය:</strong><br>කොමාවෙන් වෙන් කළ දත්ත ඇතුළත් කරන්න (උදා: 5,12,8,9). ඔබේ දත්ත කාණ්ඩ කිරීමට μ() වැනි බොත්තම් භාවිත කර = ඔබන්න. උදා: <strong>μ(5,12,8,9)</strong> මගින් මධ්‍යන්‍යය ගණනය කරයි.', ta: '<strong>புள்ளியியல் முறை:</strong><br>காற்புள்ளியால் பிரிக்கப்பட்ட தரவை உள்ளிடவும் (எ.கா., 5,12,8,9). உங்கள் தரவைச் சுற்றி μ() போன்ற பொத்தான்களைப் பயன்படுத்தி = ஐ அழுத்தவும். எ.கா: <strong>μ(5,12,8,9)</strong> சராசரியைக் கணக்கிடும்.'},
     matrix: { en: '<strong>Matrix Mode:</strong><br>Enter a matrix in array format, e.g., [[1,2],[3,4]]. Use det() or inv() to wrap it, then press =. Ex: <strong>det([[1,2],[3,4]])</strong> finds the determinant.', si: '<strong>න්‍යාස ප්‍රකාරය:</strong><br>න්‍යාසයක් array ආකාරයෙන් ඇතුළත් කරන්න, උදා: [[1,2],[3,4]]. එය වටා det() හෝ inv() යොදා = ඔබන්න. උදා: <strong>det([[1,2],[3,4]])</strong> මගින් නිශ්චායකය සොයයි.', ta: '<strong>அணி முறை:</strong><br>அணியை வரிசை வடிவத்தில் உள்ளிடவும், எ.கா., [[1,2],[3,4]]. அதைச் சுற்றி det() அல்லது inv() ஐப் பயன்படுத்தி, பின்னர் = ஐ அழுத்தவும். எ.கா: <strong>det([[1,2],[3,4]])</strong> அணிக்கோவையைக் கண்டறிகிறது.'},
     graph: { en: '<strong>Graph Mode:</strong><br>Enter a function of x (e.g., "2*x^2 - x + 5" or "sin(x)"). Press "Plot" to visualize the function on a graph.', si: '<strong>ප්‍රස්තාර ප්‍රකාරය:</strong><br>x හි ශ්‍රිතයක් ඇතුළත් කරන්න (උදා: "2*x^2 - x + 5" හෝ "sin(x)"). ශ්‍රිතය ප්‍රස්තාරයක දෘශ්‍යමාන කිරීමට "Plot" ඔබන්න.', ta: '<strong>வரைபட முறை:</strong><br>x இன் ஒரு செயல்பாட்டை உள்ளிடவும் (உதாரணமாக, "2*x^2 - x + 5" அல்லது "sin(x)"). செயல்பாட்டை ஒரு வரைபடத்தில் காட்சிப்படுத்த "Plot" ஐ அழுத்தவும்.'},
@@ -443,25 +438,30 @@ function applyTheme(theme) {
     
     renderHistory(); 
 
-    const topButtons = [themeToggleBtn, voiceBtn, helpBtn, languageSelector, logoutBtn];
+    const allTopButtons = [themeToggleBtn, voiceBtn, helpBtn, languageSelector, logoutBtn];
     if (theme === 'dark') {
         moonIcon.classList.remove('hidden');
         sunIcon.classList.add('hidden');
-        topButtons.forEach(btn => {
-            if(btn && btn.id !== 'logoutBtn') {
-                btn.classList.add('bg-gray-800', 'text-gray-400');
-                btn.classList.remove('bg-gray-200', 'text-gray-700');
+        allTopButtons.forEach(btn => {
+            if(btn && btn.id !== 'logoutBtn' && btn.id !== 'themeToggleBtn') {
+                btn.classList.add('bg-gray-800/50');
+                btn.classList.remove('bg-gray-200/50');
             }
         });
+        themeToggleBtn.classList.add('bg-gray-800');
+        themeToggleBtn.classList.remove('bg-gray-200');
+
     } else {
         moonIcon.classList.add('hidden'); 
         sunIcon.classList.remove('hidden');
-        topButtons.forEach(btn => {
-             if(btn && btn.id !== 'logoutBtn') {
-                btn.classList.remove('bg-gray-800', 'text-gray-400');
-                btn.classList.add('bg-gray-200', 'text-gray-700');
+        allTopButtons.forEach(btn => {
+             if(btn && btn.id !== 'logoutBtn' && btn.id !== 'themeToggleBtn') {
+                btn.classList.remove('bg-gray-800/50');
+                btn.classList.add('bg-gray-200/50');
             }
         });
+        themeToggleBtn.classList.remove('bg-gray-800');
+        themeToggleBtn.classList.add('bg-gray-200');
     }
 }
 
@@ -471,7 +471,8 @@ function renderKeys(mode) {
     keys.innerHTML = '';
     const isSpecialGrid = ['programmer', 'scientific'].includes(mode);
     let gridClass = 'grid-cols-4';
-    if(isSpecialGrid) gridClass = 'grid-cols-6';
+    if(isSpecialGrid) gridClass = 'grid-cols-6'; 
+    else if (mode === 'standard') gridClass = 'grid-cols-4';
     if(mode === 'ai') gridClass = 'grid-cols-4';
     if(mode === 'statistics') gridClass = 'grid-cols-4';
     if(mode === 'matrix') gridClass = 'grid-cols-4';
@@ -503,8 +504,7 @@ function renderKeys(mode) {
 
         textColorClass = (isFunc) 
             ? (currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700')
-            : (isEquals ? 'text-white' : (currentTheme === 'dark' ? 'text-white' : 'text-gray-800'));
-
+            : (isEquals || isOp ? 'text-white' : (currentTheme === 'dark' ? 'text-white' : 'text-gray-800'));
 
         btn.classList.add(keyTypeClass, textColorClass);
         
@@ -513,14 +513,12 @@ function renderKeys(mode) {
             btn.classList.replace(keyTypeClass, 'bg-emerald-600'), btn.classList.replace(textColorClass, 'text-white');
         }
        
-        if (val === '=') { 
-          if(mode === 'programmer') {
-          } else if (mode === 'matrix') {
-             btn.classList.add('col-span-4');
-          } else if (!['date', 'finance', 'statistics', 'matrix'].includes(mode)) {
-             btn.classList.add('col-span-2');
-          }
+        if (val === '=') {
+            if (mode === 'standard') btn.classList.add('col-span-2');
+            else if (mode === 'matrix') btn.classList.add('col-span-4');
+            else if (!['date', 'finance', 'statistics', 'matrix'].includes(mode)) btn.classList.add('col-span-2');
         }
+
         if (val === 'Ask AI' || val === 'Plot') btn.classList.add('col-span-4');
         if (val === 'σ²()') btn.innerHTML = 'σ<sup class="-top-1">2</sup>()'; else btn.textContent = val;
         btn.dataset.value = val;
@@ -547,13 +545,16 @@ function render(){
     }
 
     const isPhotomath = currentMode === 'photomath';
-    if (photomathContainer) photomathContainer.classList.toggle('hidden', !isPhotomath);
-    if (keys) keys.classList.toggle('hidden', isPhotomath);
-    if (displayContainer) displayContainer.classList.toggle('hidden', isPhotomath);
-    if (controlsContainer) controlsContainer.classList.toggle('hidden', isPhotomath);
+    const isGraph = currentMode === 'graph';
+    const isStandardLike = !isPhotomath && !isGraph;
 
-    if(historyEl) historyEl.classList.toggle('hidden', false);
-    if(graphContainer) graphContainer.classList.toggle('hidden', currentMode !== 'graph');
+    // Toggle visibility based on mode
+    if (photomathContainer) photomathContainer.classList.toggle('hidden', !isPhotomath);
+    if (graphContainer) graphContainer.classList.toggle('hidden', !isGraph);
+    if (keys) keys.classList.toggle('hidden', !isStandardLike);
+    if (displayContainer) displayContainer.classList.toggle('hidden', isPhotomath); // Hidden only for photomath
+    if (controlsContainer) controlsContainer.classList.toggle('hidden', !isStandardLike);
+    if (historyEl) historyEl.classList.toggle('hidden', isGraph); // Hide history in graph mode for more space
 }
 
 // --- SPECIALIZED CALCULATION LOGIC ---
@@ -589,7 +590,7 @@ function solveMockProblem() { const langCode = languageSelector.value.split('-')
 function resetPhotomath() { uploadedImage.classList.add('hidden'); uploadedImage.src = ''; solutionContainer.classList.add('hidden'); solutionContainer.style.opacity = '0'; uploadArea.classList.remove('hidden'); stepsContainer.classList.add('hidden'); refreshPhotomathBtn.classList.add('hidden'); toggleStepsBtn.textContent = 'Show Steps'; imageUpload.value = ''; }
 
 // --- EVENT HANDLERS ---
-function handleKeyClick(e) { const btn = e.target.closest('button'); if (!btn) return; const val = btn.dataset.value; const wrapInFunc = (func) => { expression = `${func.slice(0, -1)}${expression})`; }; const actions = { 'C': () => { expression = ''; resEl.textContent = '0'; }, '⌫': () => expression = expression.slice(0, -1), '=': handleEquals, 'Ask AI': () => calculateWithAI(expression), 'Plot': () => plotGraph(expression), 'MC': () => { memory = 0; showToast('Memory Cleared'); }, 'MR': () => { expression += memory; }, 'M+': () => { memory += Number(resEl.textContent) || 0; showToast(`Added to Memory. M=${memory}`); }, 'M-': () => { memory -= Number(resEl.textContent) || 0; showToast(`Subtracted from Memory. M=${memory}`); }, 'x²': () => expression += '^2', '1/x': () => expression += '1/', '+/-': () => expression += '(-', 'μ()': () => wrapInFunc('μ()'), 'σ()': () => wrapInFunc('σ()'), 'σ²()': () => wrapInFunc('σ²()'), 'Σx()': () => wrapInFunc('Σx()'), 'n()': () => wrapInFunc('n()'), 'det()': () => wrapInFunc('det()'), 'inv()': () => wrapInFunc('inv()'), 'Deg': () => { angleUnit = 'deg'; showToast('Angle unit: Degrees', 'info'); }, 'Rad': () => { angleUnit = 'rad'; showToast('Angle unit: Radians', 'info'); }, 'HEX': () => { try { resEl.textContent = '0x' + parseInt(resEl.textContent).toString(16).toUpperCase(); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'DEC': () => { try { resEl.textContent = parseInt(resEl.textContent).toString(10); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'BIN': () => { try { resEl.textContent = '0b' + parseInt(resEl.textContent).toString(2); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'OCT': () => { try { resEl.textContent = '0o' + parseInt(resEl.textContent).toString(8); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'Today': () => { const today = new Date(); const yyyy = today.getFullYear(); const mm = String(today.getMonth() + 1).padStart(2, '0'); const dd = String(today.getDate()).padStart(2, '0'); expression += `${yyyy}-${mm}-${dd}`; }, }; if (actions[val]) { actions[val](); } else if (val.includes('→')) { convertUnit(val); } else { expression += val; } render(); }
+function handleKeyClick(e) { const btn = e.target.closest('button'); if (!btn) return; const val = btn.dataset.value; const wrapInFunc = (func) => { expression = `${func.slice(0, -1)}${expression})`; }; const actions = { 'C': () => { expression = ''; resEl.textContent = '0'; }, '⌫': () => expression = expression.slice(0, -1), '=': handleEquals, 'Ask AI': () => calculateWithAI(expression), 'Plot': () => plotGraph(expression), 'MC': () => { memory = 0; showToast('Memory Cleared'); }, 'MR': () => { expression += memory; }, 'M+': () => { let currentVal = parseFloat(resEl.textContent); if (!isNaN(currentVal)) { memory += currentVal; showToast(`Added to Memory. M=${memory.toPrecision(8)}`); } }, 'M-': () => { let currentVal = parseFloat(resEl.textContent); if (!isNaN(currentVal)) { memory -= currentVal; showToast(`Subtracted from Memory. M=${memory.toPrecision(8)}`); } }, 'x²': () => expression += '^2', '1/x': () => expression += '1/', '+/-': () => expression += '(-', 'μ()': () => wrapInFunc('μ()'), 'σ()': () => wrapInFunc('σ()'), 'σ²()': () => wrapInFunc('σ²()'), 'Σx()': () => wrapInFunc('Σx()'), 'n()': () => wrapInFunc('n()'), 'det()': () => wrapInFunc('det()'), 'inv()': () => wrapInFunc('inv()'), 'Deg': () => { angleUnit = 'deg'; showToast('Angle unit: Degrees', 'info'); }, 'Rad': () => { angleUnit = 'rad'; showToast('Angle unit: Radians', 'info'); }, 'HEX': () => { try { resEl.textContent = '0x' + parseInt(resEl.textContent).toString(16).toUpperCase(); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'DEC': () => { try { resEl.textContent = parseInt(resEl.textContent).toString(10); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'BIN': () => { try { resEl.textContent = '0b' + parseInt(resEl.textContent).toString(2); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'OCT': () => { try { resEl.textContent = '0o' + parseInt(resEl.textContent).toString(8); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'Today': () => { const today = new Date(); const yyyy = today.getFullYear(); const mm = String(today.getMonth() + 1).padStart(2, '0'); const dd = String(today.getDate()).padStart(2, '0'); expression += `${yyyy}-${mm}-${dd}`; }, }; if (actions[val]) { actions[val](); } else if (val.includes('→')) { convertUnit(val); } else { expression += val; } render(); }
 function handleEquals() { if (!expression) return; let res = evaluateExpression(expression); if (res === undefined || res === null || res.toString().includes('Error')) { resEl.textContent = 'Error'; } else { res = (typeof res === 'number' && Math.abs(res) > 1e-8) ? parseFloat(res.toPrecision(10)) : res; resEl.textContent = res.toString(); pushHistory(expression, resEl.textContent); } expression = resEl.textContent.includes('Error') ? '' : resEl.textContent; resEl.classList.add('result-animate'); }
 function convertUnit(val){ const num = Number(expression); if(isNaN(num)) { showToast('Enter a number first', 'error'); return; } const conversions = { 'km→m': num*1000, 'm→km': num/1000, 'kg→g': num*1000, 'g→kg': num/1000, '°C→°F': (num*9/5)+32, '°F→°C': (num-32)*5/9, 'L→mL': num*1000, 'mL→L': num/1000 }; const result = conversions[val]; resEl.textContent = result.toFixed(4).replace(/\.?0*$/, ''); resEl.classList.add('result-animate'); pushHistory(expression + ' ' + val, resEl.textContent); expression = resEl.textContent; }
 
@@ -599,6 +600,9 @@ function initializeApp() {
     if (loggedInUser && userIdDisplay) {
         userIdDisplay.textContent = `Welcome, ${loggedInUser}`;
     }
+
+    if (waterFrame) waterFrame.classList.add('animate-load-main');
+    if (topControls) topControls.classList.add('animate-load-controls');
 
     if (menuContainer) {
         menuItems.forEach((item, index) => {
@@ -619,7 +623,7 @@ function initializeApp() {
         for(const[code,name]of Object.entries(languages)){const option=document.createElement('option');option.value=code;option.textContent=name;languageSelector.appendChild(option)}
     }
     
-    applyTheme('dark'); // Apply theme first
+    applyTheme('dark');
     renderKeys(currentMode);
     render();
     renderHistory();
@@ -651,36 +655,43 @@ function initializeApp() {
             
             const targetMode = btn.dataset.mode;
             if (currentMode === targetMode) return;
-
-            const oldContent = currentMode === 'photomath' ? photomathContainer : keys;
-            if (oldContent) {
-                oldContent.style.opacity = '0'; 
-                oldContent.style.transform = 'translateY(10px)';
-            }
-            if (graphChart) { graphChart.destroy(); graphChart = null; }
+            
+            const contentAreas = [keys, photomathContainer, graphContainer, displayContainer, controlsContainer, historyEl];
+        
+            contentAreas.forEach(area => {
+                if (area && !area.classList.contains('hidden')) {
+                    area.classList.remove('content-enter');
+                    area.classList.add('content-exit');
+                }
+            });
 
             setTimeout(() => {
                 const classes = themeClasses[currentTheme];
                 sidebar.querySelectorAll('button.menu-btn').forEach(b => b.classList.remove('active', classes.menu_active));
                 btn.classList.add('active', classes.menu_active);
                 
+                const oldMode = currentMode;
                 currentMode = targetMode;
-                if(currentMode !== 'photomath') {
+
+                if (currentMode === 'photomath') {
+                    resetPhotomath();
+                } else if (oldMode !== 'graph') { 
                     expression = ''; 
                     if(resEl) resEl.textContent = '0';
-                } else {
-                    resetPhotomath();
                 }
 
                 if (isHelpPanelVisible) updateInstructions(currentMode);
-                renderKeys(currentMode);
-                render();
+                if (graphChart && oldMode === 'graph') { graphChart.destroy(); graphChart = null; }
                 
-                const newContent = currentMode === 'photomath' ? photomathContainer : keys;
-                if (newContent) {
-                    newContent.style.opacity = '1'; 
-                    newContent.style.transform = 'translateY(0)';
-                }
+                renderKeys(currentMode);
+                render(); 
+                
+                contentAreas.forEach(area => {
+                    area?.classList.remove('content-exit'); 
+                    if (area && !area.classList.contains('hidden')) {
+                        area.classList.add('content-enter');
+                    }
+                });
             }, 200);
         });
     }
@@ -709,7 +720,17 @@ function toggleSidebarWidth() {
     if(title) title.classList.toggle('hidden', !isSidebarExpanded);
     if(userId) userId.classList.toggle('hidden', !isSidebarExpanded);
     if(credit) credit.classList.toggle('hidden', !isSidebarExpanded);
-    labels.forEach(label => label.classList.toggle('hidden', !isSidebarExpanded));
+    
+    labels.forEach((label, index) => {
+        label.classList.toggle('hidden', !isSidebarExpanded);
+        if (isSidebarExpanded) {
+            label.classList.add('sidebar-label-animate');
+            label.style.animationDelay = `${index * 50}ms`;
+        } else {
+            label.classList.remove('sidebar-label-animate');
+            label.style.animationDelay = '';
+        }
+    });
     
     if(header) {
         header.classList.toggle('justify-center', !isSidebarExpanded);
