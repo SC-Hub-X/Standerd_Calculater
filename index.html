@@ -3,65 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sadew Pro Voice & AI Calculator (Upgraded)</title>
+<title>Standard Calculator (Upgraded & Final Fix)</title>
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Firebase SDKs -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, collection, query, onSnapshot, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-
-  // Global variables provided by the environment
-  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-  const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-  let db, auth, userId = null;
-  let isFirebaseReady = false;
-
-  if (firebaseConfig) {
-      const app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-      auth = getAuth(app);
-
-      async function initializeAuth() {
-          try {
-              if (initialAuthToken) {
-                  await signInWithCustomToken(auth, initialAuthToken);
-              } else {
-                  await signInAnonymously(auth);
-              }
-          } catch (error) {
-              console.error("Firebase Auth error:", error);
-          }
-      }
-      initializeAuth();
-  }
-
-  window.initFirebase = (callback) => {
-      if (isFirebaseReady) return callback(db, auth, userId);
-      onAuthStateChanged(auth, (user) => {
-          if (user) {
-              userId = user.uid;
-              document.getElementById('userIdDisplay').textContent = `User: ${userId.substring(0, 8)}...`;
-          } else {
-              userId = crypto.randomUUID();
-              document.getElementById('userIdDisplay').textContent = `User: Anon-${userId.substring(0, 8)}...`;
-          }
-          isFirebaseReady = true;
-          callback(db, auth, userId);
-      });
-  };
-
-</script>
 <!-- Chart.js for Graph Mode -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 /* --- BASE & FONT STYLES --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Segoe UI", Roboto, "Noto Sans Sinhala", sans-serif;}
+
+/* --- LOGIN PAGE UI ENHANCEMENTS (NEW) --- */
+:root{--accent: #8b5cf6; --accent-2:#06b6d4}
+.blob{position:absolute;z-index:-1;filter:blur(80px);opacity:0.6;mix-blend-mode:screen;transform:translateZ(0)}
+.blob.one{width:450px;height:450px;border-radius:50%;left:-150px;top:-100px;background:linear-gradient(135deg,var(--accent),#4f46e5)}
+.blob.two{width:380px;height:380px;border-radius:50%;right:-120px;bottom:-150px;background:linear-gradient(135deg,var(--accent-2),#3b82f6)}
+@keyframes floaty{0%{transform:translateY(0)}50%{transform:translateY(-15px)}100%{transform:translateY(0)}}
+.floaty{animation:floaty 8s ease-in-out infinite}
+
 
 /* --- ANIMATIONS --- */
 @keyframes icon-pop {
@@ -100,16 +59,16 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 .menu-btn { transition: background-color 0.2s, color 0.2s, transform 0.1s; }
 
 /* Scrollbar styles */
-.sidebar::-webkit-scrollbar, #keys::-webkit-scrollbar, #history::-webkit-scrollbar, #customList::-webkit-scrollbar, #instructionsContent::-webkit-scrollbar { width: 8px; }
-.sidebar::-webkit-scrollbar-track, #keys::-webkit-scrollbar-track, #history::-webkit-scrollbar-track, #customList::-webkit-scrollbar-track, #instructionsContent::-webkit-scrollbar-track { background: #111827; border-radius: 4px; }
-.sidebar::-webkit-scrollbar-thumb, #keys::-webkit-scrollbar-thumb, #history::-webkit-scrollbar-thumb, #customList::-webkit-scrollbar-thumb, #instructionsContent::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 4px; }
-.sidebar::-webkit-scrollbar-thumb:hover, #keys::-webkit-scrollbar-thumb:hover, #history::-webkit-scrollbar-thumb:hover, #customList::-webkit-scrollbar-thumb:hover, #instructionsContent::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+.sidebar::-webkit-scrollbar, #keys::-webkit-scrollbar, #history::-webkit-scrollbar, #customList::-webkit-scrollbar, #instructionsContent::-webkit-scrollbar, #photomathContainer::-webkit-scrollbar, #stepsContainer::-webkit-scrollbar { width: 8px; }
+.sidebar::-webkit-scrollbar-track, #keys::-webkit-scrollbar-track, #history::-webkit-scrollbar-track, #customList::-webkit-scrollbar-track, #instructionsContent::-webkit-scrollbar-track, #photomathContainer::-webkit-scrollbar-track, #stepsContainer::-webkit-scrollbar-track { background: #111827; border-radius: 4px; }
+.sidebar::-webkit-scrollbar-thumb, #keys::-webkit-scrollbar-thumb, #history::-webkit-scrollbar-thumb, #customList::-webkit-scrollbar-thumb, #instructionsContent::-webkit-scrollbar-thumb, #photomathContainer::-webkit-scrollbar-thumb, #stepsContainer::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 4px; }
+.sidebar::-webkit-scrollbar-thumb:hover, #keys::-webkit-scrollbar-thumb:hover, #history::-webkit-scrollbar-thumb:hover, #customList::-webkit-scrollbar-thumb:hover, #instructionsContent::-webkit-scrollbar-thumb:hover, #photomathContainer::-webkit-scrollbar-thumb:hover, #stepsContainer::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
 
 /* --- THEME SPECIFIC STYLES --- */
 /* DARK MODE (Default) */
-.body-dark { background-color: #030712; color: white; }
-.sidebar-dark { background-color: #111827; }
-.calc-dark { background-color: #111827; }
+.body-dark { background-color: #060712; color: white; }
+.sidebar-dark { background-color: rgba(17, 24, 39, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-right:1px solid rgba(255,255,255,0.08); }
+.calc-dark { background-color: transparent; }
 .display-dark { background-color: rgba(31, 41, 55, 0.7); }
 .expr-dark { color: #9ca3af; }
 .result-dark { color: #a78bfa; }
@@ -117,20 +76,22 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 .key-normal-dark { background-color: #1f2937; }
 .key-action-dark { background-color: #374151; }
 .key-equals-dark { background-color: #8b5cf6; }
-.key-func-dark { background-color: #111827; }
+.key-func-dark { background-color: rgba(17, 24, 39, 0.8); }
 .key-op-dark { background-color: #8b5cf6; }
 .menu-btn-dark { color: white; }
 .menu-btn-active-dark { background-color: #7c3aed; }
-.history-item-dark:hover { background-color: #1f2937; }
+.history-item-dark:hover { background-color: #374151; }
 .hint-dark { color: #6b7280; }
 .graph-border-dark { border-color: #374151; }
 .graph-bg-dark { background-color: #111827; }
-.frame-dark { background: rgba(17, 24, 32, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+.frame-dark { background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+.photomath-dark { background-color: transparent; }
+.step-item-dark { border-color: #374151; }
 
 /* LIGHT MODE */
-.body-light { background-color: #f9fafb; color: #1f2937; }
-.sidebar-light { background-color: white; }
-.calc-light { background-color: white; }
+.body-light { background-color: #f1f5f9; color: #1f2937; }
+.sidebar-light { background-color: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-right:1px solid rgba(0,0,0,0.05); }
+.calc-light { background-color: transparent; }
 .display-light { background-color: rgba(229, 231, 235, 0.7); }
 .expr-light { color: #6b7280; }
 .result-light { color: #6d28d9; }
@@ -142,14 +103,16 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 .key-op-light { background-color: #a78bfa; }
 .menu-btn-light { color: #1f2937; }
 .menu-btn-active-light { background-color: #a78bfa; color: white; }
-.history-item-light:hover { background-color: #f3f4f6; }
+.history-item-light:hover { background-color: #f0eefc; }
 .hint-light { color: #9ca3af; }
 .graph-border-light { border-color: #d1d5db; }
 .graph-bg-light { background-color: #ffffff; }
-.frame-light { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1); }
+.frame-light { background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3)); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1); }
+.photomath-light { background-color: transparent; }
+.step-item-light { border-color: #e5e7eb; }
 
-.body-light .sidebar::-webkit-scrollbar-track, .body-light #keys::-webkit-scrollbar-track, .body-light #history::-webkit-scrollbar-track, .body-light #customList::-webkit-scrollbar-track, .body-light #instructionsContent::-webkit-scrollbar-track { background: #e5e7eb; }
-.body-light .sidebar::-webkit-scrollbar-thumb, .body-light #keys::-webkit-scrollbar-thumb, .body-light #history::-webkit-scrollbar-thumb, .body-light #customList::-webkit-scrollbar-thumb, .body-light #instructionsContent::-webkit-scrollbar-thumb { background: #8b5cf6; }
+.body-light .sidebar::-webkit-scrollbar-track, .body-light #keys::-webkit-scrollbar-track, .body-light #history::-webkit-scrollbar-track, .body-light #customList::-webkit-scrollbar-track, .body-light #instructionsContent::-webkit-scrollbar-track, .body-light #photomathContainer::-webkit-scrollbar-track, .body-light #stepsContainer::-webkit-scrollbar-track { background: #e5e7eb; }
+.body-light .sidebar::-webkit-scrollbar-thumb, .body-light #keys::-webkit-scrollbar-thumb, .body-light #history::-webkit-scrollbar-thumb, .body-light #customList::-webkit-scrollbar-thumb, .body-light #instructionsContent::-webkit-scrollbar-thumb, .body-light #photomathContainer::-webkit-scrollbar-thumb, .body-light #stepsContainer::-webkit-scrollbar-thumb { background: #8b5cf6; }
 
 /* Toast Notification Styles */
 #toastContainer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; pointer-events: none; }
@@ -159,7 +122,7 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 .toast-error { background-color: #ef4444; color: white; }
 .toast-info { background-color: #3b82f6; color: white; }
 
-/* --- MOBILE RESPONSIVENESS --- */
+/* MOBILE RESPONSIVENESS */
 @media (max-width: 768px) {
     .main { padding: 1rem; flex-direction: column;}
     #waterFrame { padding: 0.5rem; max-height: 95vh; order: 2; }
@@ -169,11 +132,16 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
     .display { min-height: 80px; }
     .result { font-size: 2.2rem; }
     #topControls { flex-direction: row; align-items: center; gap: 0.5rem; position: relative; top: 0; right: 0; order: 1; margin-bottom: 1rem; }
+    .blob { display: none; }
 }
 </style>
 </head>
 
 <body class="body-dark flex min-h-screen" id="appBody">
+
+<!-- Animated Blobs (NEW) -->
+<div class="blob one floaty" aria-hidden="true"></div>
+<div class="blob two floaty" aria-hidden="true"></div>
 
 <!-- TOAST NOTIFICATION CONTAINER -->
 <div id="toastContainer"></div>
@@ -186,9 +154,9 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
             <svg id="toggleIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
     </div>
-    <div class="p-3 mb-4 text-xs text-gray-400 break-words hidden" id="userIdDisplay">Loading User...</div>
+    <div id="userIdDisplay" class="p-3 mb-4 text-xs text-gray-400 break-words hidden"></div>
     <div id="menuContainer" class="flex flex-col">
-        <!-- Menu items will be inserted here -->
+        <!-- Menu items will be inserted here by JavaScript -->
     </div>
     <div class="mt-auto p-3 text-center hidden" id="creatorCredit">
         <p class="text-xs hint-dark">© 2025 Sadew Chamathsara</p>
@@ -218,12 +186,16 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
         <button id="helpBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-gray-800" aria-label="Show Help">
             <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </button>
+        <!-- Logout Button (NEW) -->
+        <button id="logoutBtn" class="p-3 rounded-full shadow-lg transition duration-200 bg-red-600/50 hover:bg-red-600" aria-label="Logout">
+            <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        </button>
     </div>
 
     <!-- MAIN CALCULATOR FRAME -->
     <div id="waterFrame" class="frame-dark shadow-2xl rounded-3xl p-2 md:p-3 flex flex-col h-full w-full max-w-lg md:max-w-2xl transition-all duration-300">
         <main class="calc calc-dark rounded-2xl p-4 md:p-6 flex flex-col h-full transition-all duration-300" role="application" aria-label="Calculator" id="calculator">
-            <div class="display display-dark p-4 rounded-xl min-h-[90px] mb-4 shadow-inner flex flex-col justify-end">
+            <div id="displayContainer" class="display display-dark p-4 rounded-xl min-h-[90px] mb-4 shadow-inner flex flex-col justify-end">
                 <div class="expr text-sm break-all expr-dark text-right" id="expression">0</div>
                 <div class="result text-4xl font-bold mt-1 text-right result-dark" id="result">0</div>
             </div>
@@ -231,10 +203,40 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
             <div id="graphContainer" class="hidden flex-1 mb-4">
                 <canvas id="graphCanvas" class="w-full h-full rounded-xl border graph-border-dark graph-bg-dark"></canvas>
             </div>
+
+            <!-- PHOTO MATH CONTAINER -->
+            <div id="photomathContainer" class="hidden flex-1 flex-col p-2 rounded-lg photomath-dark text-center space-y-3 overflow-y-auto">
+                 <div class="w-full flex justify-start pl-1 pt-1">
+                     <button id="refreshPhotomathBtn" class="hidden p-2 rounded-full text-gray-400 hover:bg-gray-700 hover:text-white transition" aria-label="Clear and upload new photo">
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 4l16 16"></path></svg>
+                     </button>
+                 </div>
+                 <div class="flex-1 flex flex-col items-center justify-center w-full px-4 pb-4">
+                     <div id="uploadArea" class="w-full">
+                         <img id="uploadedImage" src="" alt="Uploaded Math Problem" class="hidden max-w-full max-h-48 mx-auto rounded-lg shadow-lg mb-4"/>
+                         <label for="imageUpload" id="uploadLabel" class="w-full cursor-pointer border-2 border-dashed border-gray-500 rounded-xl p-8 flex flex-col items-center justify-center hover:bg-gray-800 hover:border-violet-500 transition duration-200">
+                             <svg class="w-12 h-12 text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                             <span id="uploadLabelText" class="text-violet-400 font-semibold">Upload Photo</span>
+                             <p class="text-xs text-gray-500 mt-1">Select an image of a math problem</p>
+                         </label>
+                         <input type="file" id="imageUpload" accept="image/*" class="hidden">
+                     </div>
+                     <div id="solutionContainer" class="hidden w-full text-left mt-4 transition-opacity duration-500 opacity-0">
+                         <div class="border-t pt-4 step-item-dark">
+                             <h3 class="text-lg font-semibold mb-2 result-dark" id="solutionTitle">Solution:</h3>
+                             <p class="text-3xl font-bold" id="finalAnswer"></p>
+                             <button id="toggleStepsBtn" class="mt-4 w-full text-sm py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">Show Steps</button>
+                             <div id="stepsContainer" class="hidden mt-3 space-y-2 text-sm">
+                                <!-- Steps will be populated here -->
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+            </div>
             
             <div class="keys grid gap-2" id="keys"></div>
 
-            <div class="mt-4">
+            <div class="mt-4" id="controlsContainer">
                 <button id="copyBtn" class="w-full py-3 key-action-dark text-white font-semibold rounded-lg transition duration-200">Copy Result</button>
                 <div class="hint text-xs mt-2 text-center hint-dark">Keyboard and Voice supported</div>
             </div>
@@ -267,6 +269,14 @@ body{margin:0;height:100vh;overflow:hidden;font-family: 'Inter', system-ui, "Seg
 <script>
 // Main calculator logic
 (function(){
+
+// --- AUTHENTICATION CHECK ---
+if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+    // In a real scenario, you'd redirect. For this example, we'll just log it.
+    // window.location.href = 'login.html'; 
+    console.log("Not logged in. In a real app, this would redirect to login.html");
+}
+
 // --- ELEMENT SELECTORS ---
 const getEl = (id) => document.getElementById(id);
 const appBody = getEl('appBody');
@@ -289,31 +299,46 @@ const toastContainer = getEl('toastContainer');
 const voiceBtn = getEl('voiceBtn');
 const languageSelector = getEl('languageSelector');
 const helpBtn = getEl('helpBtn');
+const logoutBtn = getEl('logoutBtn');
 const instructionsModalOverlay = getEl('instructionsModalOverlay');
 const instructionsPanel = getEl('instructionsPanel');
 const instructionsTitle = getEl('instructionsTitle');
 const instructionsContent = getEl('instructionsContent');
 const closeHelpBtn = getEl('closeHelpBtn');
+const displayContainer = getEl('displayContainer');
+const controlsContainer = getEl('controlsContainer');
+
+// Photomath Elements
+const photomathContainer = getEl('photomathContainer');
+const imageUpload = getEl('imageUpload');
+const uploadLabel = getEl('uploadLabel');
+const uploadArea = getEl('uploadArea');
+const uploadLabelText = getEl('uploadLabelText');
+const uploadedImage = getEl('uploadedImage');
+const solutionContainer = getEl('solutionContainer');
+const finalAnswer = getEl('finalAnswer');
+const toggleStepsBtn = getEl('toggleStepsBtn');
+const stepsContainer = getEl('stepsContainer');
+const refreshPhotomathBtn = getEl('refreshPhotomathBtn');
 
 
 // --- STATE VARIABLES ---
 let expression = '';
 let currentMode = 'standard';
-let customCalculations = [];
 let currentTheme = 'dark';
 let graphChart = null;
 let memory = 0;
 let isSidebarExpanded = false; 
-let firestoreDb = null;
-let currentUserId = null;
 let recognition;
 let isListening = false;
-let angleUnit = 'rad'; // New state for scientific mode: 'rad' or 'deg'
+let angleUnit = 'rad'; 
 let isHelpPanelVisible = false;
+let historyData = [];
 
 // --- MENU & LAYOUT DATA ---
 const menuItems = [
     { mode: 'standard', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>`, label: 'Standard Mode' },
+    { mode: 'photomath', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>`, label: 'PhotoMath Mode' },
     { mode: 'ai', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13.18v4.24a2 2 0 001.106 1.79l4.588 2.294a2 2 0 001.812 0l4.588-2.294A2 2 0 0019 17.42V13.18M12 15.41v-5.8M12 3.12A2.25 2.25 0 0010.06 1.5H9.75a2.25 2.25 0 00-2.25 2.25v.49a2.25 2.25 0 00.182 1.01l.01.02.002.003a2.25 2.25 0 003.88 1.01l.01-.02.002-.003A2.25 2.25 0 0014.25 4.24v-.49A2.25 2.25 0 0012 1.5v0Z"></path></svg>`, label: 'AI Calculate Mode' },
     { mode: 'scientific', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 11h2m10 0h2M3 15h4m10 0h4M2 12l2-2h16l2 2M16 4h4v4h-4zM8 12h8v8H8z"></path></svg>`, label: 'Scientific Mode' },
     { mode: 'programmer', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>`, label: 'Programmer Mode' },
@@ -323,87 +348,20 @@ const menuItems = [
     { mode: 'converter', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16a4 4 0 100-8 4 4 0 000 8zm0-12v1m0 14v1m-7-8h1m14 0h1M5.636 5.636l.707.707m12.728 12.728l.707.707M5.636 18.364l.707-.707m12.728-12.728l.707-.707"></path></svg>`, label: 'Converter Mode' },
     { mode: 'finance', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>`, label: 'Finance Mode' },
     { mode: 'date', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`, label: 'Date Mode' },
-    { mode: 'custom', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>`, label: 'Custom (Cloud) Mode' },
 ];
 
 const layouts = {
-    standard: [
-        ['C', '⌫', '%', '/'], 
-        ['7', '8', '9', '*'], 
-        ['4', '5', '6', '-'], 
-        ['1', '2', '3', '+'], 
-        ['0', '.', '=']
-    ],
-    ai: [
-        ['C', '⌫', '(', ')'], 
-        ['7', '8', '9', '*'], 
-        ['4', '5', '6', '-'], 
-        ['1', '2', '3', '+'], 
-        ['0', '.', '%', ''], 
-        ['Ask AI']
-    ],
-    scientific: [
-        ['Rad', 'Deg', 'x²', '^', '(', ')'], 
-        ['sin(', 'cos(', 'tan(', 'C', '⌫', '/'], 
-        ['log(', 'ln', '7', '8', '9', '*'], 
-        ['√(', '1/x', '4', '5', '6', '-'], 
-        ['π', 'e', '1', '2', '3', '+'], 
-        ['abs(', '+/-', '0', '.', '=']
-    ],
-    programmer: [
-        ['HEX', 'DEC', 'OCT', 'BIN', 'C', '⌫'],
-        ['A', 'B', 'AND', 'OR', 'XOR', 'NOT'],
-        ['C', 'D', '7', '8', '9', '/'],
-        ['E', 'F', '4', '5', '6', '*'],
-        ['(', ')', '1', '2', '3', '-'],
-        ['<<', '>>', '0', '.', '=', '+']
-    ],
-    statistics: [
-        ['μ()', 'σ()', 'σ²()', 'Σx()'],
-        ['C', '⌫', '(', ')'], 
-        ['7', '8', '9', 'n()'], 
-        ['4', '5', '6', ','], 
-        ['1', '2', '3', '-'], 
-        ['0', '.', '+', '=']
-    ],
-    matrix: [
-        ['C', '⌫', 'det()', 'inv()'], 
-        ['7', '8', '9', ','], 
-        ['4', '5', '6', '['], 
-        ['1', '2', '3', ']'], 
-        ['0', '.', '[[', ']]'],
-        ['=']
-    ],
-    converter: [
-        ['C', '⌫', 'km→m', 'm→km'], 
-        ['kg→g', 'g→kg', '°C→°F', '°F→°C'], 
-        ['L→mL', 'mL→L']
-    ],
-    finance: [
-        ['C', '⌫', '%', 'SI('], 
-        ['7', '8', '9', '/'], 
-        ['4', '5', '6', '*'], 
-        ['1', '2', '3', '-'], 
-        ['0', '.', 'CI('], 
-        [',', ')', '=']
-    ],
-    date: [
-        ['C', '⌫', 'Today', 'DaysBetween('],
-        ['7','8','9','-'],
-        ['4','5','6','/'],
-        ['1','2','3','+'],
-        ['0',',','.','=']
-    ],
-    graph: [
-        ['sin(', 'cos(', 'tan(', 'x'],
-        ['C', '⌫', '(', ')'],
-        ['7', '8', '9', '/'],
-        ['4', '5', '6', '*'],
-        ['1', '2', '3', '-'],
-        ['0', '.', '^', '+'],
-        ['Plot']
-    ],
-    custom: [['C', '⌫', 'Save', 'Load']]
+    photomath: [],
+    standard: [['C','⌫','%','/'],['7','8','9','*'],['4','5','6','-'],['1','2','3','+'],['0','.','=']],
+    ai: [['C','⌫','(',')'],['7','8','9','*'],['4','5','6','-'],['1','2','3','+'],['0','.','%',''],['Ask AI']],
+    scientific: [['Rad','Deg','x²','^','(',')'],['sin(','cos(','tan(','C','⌫','/'],['log(','ln','7','8','9','*'],['√(','1/x','4','5','6','-'],['π','e','1','2','3','+'],['abs(','+/-','0','.','=']],
+    programmer: [['HEX','DEC','OCT','BIN','C','⌫'],['A','B','AND','OR','XOR','NOT'],['C','D','7','8','9','/'],['E','F','4','5','6','*'],['(',')','1','2','3','-'],['<<','>>','0','.','=','+']],
+    statistics: [['μ()','σ()','σ²()','Σx()'],['C','⌫','(',')'],['7','8','9','n()'],['4','5','6',','],['1','2','3','-'],['0','.','+','=']],
+    matrix: [['C','⌫','det()','inv()'],['7','8','9',','],['4','5','6','['],['1','2','3',']'],['0','.','[[',']]'],['=']],
+    converter: [['C','⌫','km→m','m→km'],['kg→g','g→kg','°C→°F','°F→°C'],['L→mL','mL→L']],
+    finance: [['C','⌫','%','SI('],['7','8','9','/'],['4','5','6','*'],['1','2','3','-'],['0','.','CI('],[',',')','=']],
+    date: [['C','⌫','Today','DaysBetween('],['7','8','9','-'],['4','5','6','/'],['1','2','3','+'],['0',',','.','=']],
+    graph: [['sin(','cos(','tan(','x'],['C','⌫','(',')'],['7','8','9','/'],['4','5','6','*'],['1','2','3','-'],['0','.','^','+'],['Plot']]
 };
 
 const instructionTitles = {
@@ -413,66 +371,22 @@ const instructionTitles = {
 };
 
 const modeInstructions = {
-    standard: {
-        en: '<strong>Standard Mode:</strong><br>Perform basic arithmetic operations. Use the memory functions (MC, MR, M+, M-) to store and recall numbers.',
-        si: '<strong>සම්මත ප්‍රකාරය:</strong><br>මූලික ගණිතමය амал කරන්න. මතක ශ්‍රිත (MC, MR, M+, M-) භාවිතයෙන් අංක ගබඩා කර නැවත ලබා ගන්න.',
-        ta: '<strong>சாதாரண முறை:</strong><br>அடிப்படை எண்கணித செயல்பாடுகளைச் செய்யவும். நினைவக செயல்பாடுகளை (MC, MR, M+, M-) எண்களைச் சேமிக்கவும் நினைவுபடுத்தவும் பயன்படுத்தவும்.'
-    },
-    ai: {
-        en: '<strong>AI Mode:</strong><br>Type a question in natural language (e.g., "what is the square root of 81 plus 15% of 50") and press "Ask AI". The AI will calculate the answer.',
-        si: '<strong>AI ප්‍රකාරය:</strong><br>ස්වාභාවික භාෂාවෙන් ප්‍රශ්නයක් ටයිප් කර (උදා: "81 වර්ගමූලය සහ 50න් 15% එකතුව කීයද?") "Ask AI" ඔබන්න.',
-        ta: '<strong>AI முறை:</strong><br>இயற்கையான மொழியில் ஒரு கேள்வியை தட்டச்சு செய்து (உதாரணமாக, "81 இன் வர்க்கமூலம் மற்றும் 50 இன் 15% ஐக் கூட்டினால் என்ன?") "AIயிடம் கேள்" என்பதை அழுத்தவும்.'
-    },
-    scientific: {
-        en: '<strong>Scientific Mode:</strong><br>Access trigonometric (sin, cos, tan), logarithmic (ln, log), and other scientific functions. Use "Deg" and "Rad" to switch between degrees and radians.',
-        si: '<strong>විද්‍යාත්මක ප්‍රකාරය:</strong><br>ත්‍රිකෝණමිතික (sin, cos, tan), ලඝුගණක (ln, log) සහ වෙනත් විද්‍යාත්මක ශ්‍රිත භාවිත කරන්න. අංශක සහ රේඩියන අතර මාරු වීමට "Deg" සහ "Rad" භාවිත කරන්න.',
-        ta: '<strong>அறிவியல் முறை:</strong><br>முக்கோணவியல் (sin, cos, tan), மடக்கை (ln, log), மற்றும் பிற அறிவியல் செயல்பாடுகளை அணுகவும். டிகிரி மற்றும் ரேடியன்களுக்கு இடையில் மாற "Deg" மற்றும் "Rad" பயன்படுத்தவும்.'
-    },
-    programmer: {
-        en: '<strong>Programmer Mode:</strong><br>Perform bitwise operations (AND, OR, NOT, XOR) and convert numbers between decimal (DEC), hexadecimal (HEX), binary (BIN), and octal (OCT) bases.',
-        si: '<strong>ක්‍රමලේඛක ප්‍රකාරය:</strong><br>bitwise මෙහෙයුම් (AND, OR, NOT, XOR) සිදු කර දශම (DEC), ෂඩ් දශම (HEX), ද්විමය (BIN), සහ අෂ්ටක (OCT) පාද අතර අංක පරිවර්තනය කරන්න.',
-        ta: '<strong>புரோகிராமர் முறை:</strong><br>பிட்வாரியான செயல்பாடுகளை (AND, OR, NOT, XOR) செய்யவும் மற்றும் தசம (DEC), ஹெக்ஸாடெசிமல் (HEX), பைனரி (BIN), மற்றும் ஆக்டல் (OCT) தளங்களுக்கு இடையில் எண்களை மாற்றவும்.'
-    },
-     statistics: {
-        en: '<strong>Statistics Mode:</strong><br>Enter comma-separated data (e.g., 5,12,8,9). Use buttons like μ() to wrap your data and press =. Ex: <strong>μ(5,12,8,9)</strong> calculates the mean.',
-        si: '<strong>සංඛ්‍යාන ප්‍රකාරය:</strong><br>කොමාවෙන් වෙන් කළ දත්ත ඇතුළත් කරන්න (උදා: 5,12,8,9). ඔබේ දත්ත කාණ්ඩ කිරීමට μ() වැනි බොත්තම් භාවිත කර = ඔබන්න. උදා: <strong>μ(5,12,8,9)</strong> මගින් මධ්‍යන්‍යය ගණනය කරයි.',
-        ta: '<strong>புள்ளியியல் முறை:</strong><br>காற்புள்ளியால் பிரிக்கப்பட்ட தரவை உள்ளிடவும் (எ.கா., 5,12,8,9). உங்கள் தரவைச் சுற்றி μ() போன்ற பொத்தான்களைப் பயன்படுத்தி = ஐ அழுத்தவும். எ.கா: <strong>μ(5,12,8,9)</strong> சராசரியைக் கணக்கிடும்.'
-    },
-    matrix: {
-        en: '<strong>Matrix Mode:</strong><br>Enter a matrix in array format, e.g., [[1,2],[3,4]]. Use det() or inv() to wrap it, then press =. Ex: <strong>det([[1,2],[3,4]])</strong> finds the determinant.',
-        si: '<strong>න්‍යාස ප්‍රකාරය:</strong><br>න්‍යාසයක් array ආකාරයෙන් ඇතුළත් කරන්න, උදා: [[1,2],[3,4]]. එය වටා det() හෝ inv() යොදා = ඔබන්න. උදා: <strong>det([[1,2],[3,4]])</strong> මගින් නිශ්චායකය සොයයි.',
-        ta: '<strong>அணி முறை:</strong><br>அணியை வரிசை வடிவத்தில் உள்ளிடவும், எ.கா., [[1,2],[3,4]]. அதைச் சுற்றி det() அல்லது inv() ஐப் பயன்படுத்தி, பின்னர் = ஐ அழுத்தவும். எ.கா: <strong>det([[1,2],[3,4]])</strong> அணிக்கோவையைக் கண்டறிகிறது.'
-    },
-    graph: {
-        en: '<strong>Graph Mode:</strong><br>Enter a function of x (e.g., "2*x^2 - x + 5" or "sin(x)"). Press "Plot" to visualize the function on a graph.',
-        si: '<strong>ප්‍රස්තාර ප්‍රකාරය:</strong><br>x හි ශ්‍රිතයක් ඇතුළත් කරන්න (උදා: "2*x^2 - x + 5" හෝ "sin(x)"). ශ්‍රිතය ප්‍රස්තාරයක දෘශ්‍යමාන කිරීමට "Plot" ඔබන්න.',
-        ta: '<strong>வரைபட முறை:</strong><br>x இன் ஒரு செயல்பாட்டை உள்ளிடவும் (உதாரணமாக, "2*x^2 - x + 5" அல்லது "sin(x)"). செயல்பாட்டை ஒரு வரைபடத்தில் காட்சிப்படுத்த "Plot" ஐ அழுத்தவும்.'
-    },
-    converter: {
-        en: '<strong>Converter Mode:</strong><br>Enter a number, then press a conversion button (e.g., km→m) to convert between units of length, weight, temperature, and volume.',
-        si: '<strong>පරිවර්තක ප්‍රකාරය:</strong><br>අංකයක් ඇතුළත් කර, දිග, බර, උෂ්ණත්වය සහ පරිමාව ඒකක අතර පරිවර්තනය කිරීමට පරිවර්තන බොත්තමක් (උදා: km→m) ඔබන්න.',
-        ta: '<strong>மாற்றி முறை:</strong><br>ஒரு எண்ணை உள்ளிட்டு, நீளம், எடை, வெப்பநிலை மற்றும் கொள்ளளவு அலகுகளுக்கு இடையில் மாற்ற ஒரு மாற்று பொத்தானை (உதாரணமாக, km→m) அழுத்தவும்.'
-    },
-    finance: {
-        en: '<strong>Finance Mode:</strong><br>Calculate simple interest with <strong>SI(P,R,T)</strong> or compound interest with <strong>CI(P,R,T,N)</strong>. P=Principal, R=Rate, T=Time, N=Compounds/year.',
-        si: '<strong>මූල්‍ය ප්‍රකාරය:</strong><br><strong>SI(P,R,T)</strong> සමඟ සරල පොලිය හෝ <strong>CI(P,R,T,N)</strong> සමඟ චක්‍රීය පොලිය ගණනය කරන්න. P=මුදල, R=අනුපාතය, T=කාලය, N=වසරකට වාර ගණන.',
-        ta: '<strong>நிதி முறை:</strong><br><strong>SI(P,R,T)</strong> உடன் எளிய வட்டியையும் அல்லது <strong>CI(P,R,T,N)</strong> உடன் கூட்டு வட்டியையும் கணக்கிடவும். P=அசல், R=விகிதம், T=நேரம், N=ஆண்டுக்கு கூட்டப்படும் தடவைகள்.'
-    },
-    date: {
-        en: '<strong>Date Mode:</strong><br>Calculate the difference between two dates using <strong>DaysBetween(date1, date2)</strong>. Use YYYY-MM-DD format. "Today" gives the current date number.',
-        si: '<strong>දින ප්‍රකාරය:</strong><br><strong>DaysBetween(date1, date2)</strong> භාවිතයෙන් දින දෙකක් අතර වෙනස ගණනය කරන්න. YYYY-MM-DD ආකෘතිය භාවිත කරන්න. "Today" මඟින් වත්මන් දින අංකය ලබා දේ.',
-        ta: '<strong>தேதி முறை:</strong><br><strong>DaysBetween(date1, date2)</strong> ஐப் பயன்படுத்தி இரண்டு தேதிகளுக்கு இடையிலான வேறுபாட்டைக் கணக்கிடவும். YYYY-MM-DD வடிவமைப்பைப் பயன்படுத்தவும். "Today" தற்போதைய தேதி எண்ணைக் கொடுக்கும்.'
-    },
-    custom: {
-        en: '<strong>Custom (Cloud) Mode:</strong><br>Save your frequently used calculations or formulas to the cloud. Press "Save" to add the current expression, and "Load" to view your saved items.',
-        si: '<strong>අභිරුචි (වලාකුළු) ප්‍රකාරය:</strong><br>ඔබ නිතර භාවිත කරන ගණනය කිරීම් හෝ සූත්‍ර වලාකුළෙහි සුරකින්න. වත්මන් ප්‍රකාශනය එක් කිරීමට "Save" ඔබන්න, සහ ඔබ සුරකින ලද අයිතම බැලීමට "Load" ඔබන්න.',
-        ta: '<strong>தனிப்பயன் (கிளவுட்) முறை:</strong><br>நீங்கள் அடிக்கடி பயன்படுத்தும் கணக்கீடுகள் அல்லது சூத்திரங்களை கிளவுட்டில் சேமிக்கவும். தற்போதைய கோவையைச் சேர்க்க "Save" ஐ அழுத்தவும், மற்றும் நீங்கள் சேமித்த உருப்படிகளைப் பார்க்க "Load" ஐ அழுத்தவும்.'
-    }
+    photomath: { en: '<strong>PhotoMath Mode:</strong><br>Click "Upload Photo" and select an image of a math problem. The calculator will analyze it and provide the answer along with step-by-step solutions.', si: '<strong>PhotoMath ප්‍රකාරය:</strong><br>"Upload Photo" ක්ලික් කර ගණිත ගැටලුවක පින්තූරයක් තෝරන්න. කැල්කියුලේටරය එය විශ්ලේෂණය කර පියවරෙන් පියවර විසඳුම් සමඟ පිළිතුර ලබා දෙනු ඇත.', ta: '<strong>PhotoMath முறை:</strong><br>"புகைப்படத்தைப் பதிவேற்று" என்பதைக் கிளிக் செய்து, கணிதச் சிக்கலின் படத்தைத் தேர்ந்தெடுக்கவும். கால்குலேட்டர் அதை பகுப்பாய்வு செய்து, படிப்படியான தீர்வுகளுடன் பதிலளிக்கும்.'},
+    standard: { en: '<strong>Standard Mode:</strong><br>Perform basic arithmetic operations. Use the memory functions (MC, MR, M+, M-) to store and recall numbers.', si: '<strong>සම්මත ප්‍රකාරය:</strong><br>මූලික ගණිතමය амал කරන්න. මතක ශ්‍රිත (MC, MR, M+, M-) භාවිතයෙන් අංක ගබඩා කර නැවත ලබා ගන්න.', ta: '<strong>சாதாரண முறை:</strong><br>அடிப்படை எண்கணித செயல்பாடுகளைச் செய்யவும். நினைவக செயல்பாடுகளை (MC, MR, M+, M-) எண்களைச் சேமிக்கவும் நினைவுபடுத்தவும் பயன்படுத்தவும்.'},
+    ai: { en: '<strong>AI Mode:</strong><br>Type a question in natural language (e.g., "what is the square root of 81 plus 15% of 50") and press "Ask AI". The AI will calculate the answer.', si: '<strong>AI ප්‍රකාරය:</strong><br>ස්වාභාවික භාෂාවෙන් ප්‍රශ්නයක් ටයිප් කර (උදා: "81 වර්ගමූලය සහ 50න් 15% එකතුව කීයද?") "Ask AI" ඔබන්න.', ta: '<strong>AI முறை:</strong><br>இயற்கையான மொழியில் ஒரு கேள்வியை தட்டச்சு செய்து (உதாரணமாக, "81 இன் வர்க்கமூலம் மற்றும் 50 இன் 15% ஐக் கூட்டினால் என்ன?") "AIயிடம் கேள்" என்பதை அழுத்தவும்.'},
+    scientific: { en: '<strong>Scientific Mode:</strong><br>Access trigonometric (sin, cos, tan), logarithmic (ln, log), and other scientific functions. Use "Deg" and "Rad" to switch between degrees and radians.', si: '<strong>විද්‍යාත්මක ප්‍රකාරය:</strong><br>ත්‍රිකෝණමිතික (sin, cos, tan), ලඝුගණක (ln, log) සහ වෙනත් විද්‍යාත්මක ශ්‍රිත භාවිත කරන්න. අංශක සහ රේඩියන අතර මාරු වීමට "Deg" සහ "Rad" භාවිත කරන්න.', ta: '<strong>அறிவியல் முறை:</strong><br>முக்கோணவியல் (sin, cos, tan), மடக்கை (ln, log), மற்றும் பிற அறிவியல் செயல்பாடுகளை அணுகவும். டிகிரி மற்றும் ரேடியன்களுக்கு இடையில் மாற "Deg" மற்றும் "Rad" பயன்படுத்தவும்.'},
+    programmer: { en: '<strong>Programmer Mode:</strong><br>Perform bitwise operations (AND, OR, NOT, XOR) and convert numbers between decimal (DEC), hexadecimal (HEX), binary (BIN), and octal (OCT) bases.', si: '<strong>ක්‍රමලේඛක ප්‍රකාරය:</strong><br>bitwise මෙහෙයුම් (AND, OR, NOT, XOR) සිදු කර දශම (DEC), ෂඩ් දශම (HEX), ද්විමය (BIN), සහ අෂ්ටක (OCT) පාද අතර අංක පරිවර්තනය කරන්න.', ta: '<strong>புரோகிராமர் முறை:</strong><br>பிட்வாரியான செயல்பாடுகளை (AND, OR, NOT, XOR) செய்யவும் மற்றும் தசம (DEC), ஹெக்ஸாடெசிமல் (HEX), பைனரி (BIN), மற்றும் ஆக்டல் (OCT) தளங்களுக்கு இடையில் எண்களை மாற்றவும்.'},
+    statistics: { en: '<strong>Statistics Mode:</strong><br>Enter comma-separated data (e.g., 5,12,8,9). Use buttons like μ() to wrap your data and press =. Ex: <strong>μ(5,12,8,9)</strong> calculates the mean.', si: '<strong>සංඛ්‍යාන ප්‍රකාරය:</strong><br>කොමාවෙන් වෙන් කළ දත්ත ඇතුළත් කරන්න (උදා: 5,12,8,9). ඔබේ දත්ත කාණ්ඩ කිරීමට μ() වැනි බොත්තම් භාවිත කර = ඔබන්න. උදා: <strong>μ(5,12,8,9)</strong> මගින් මධ්‍යන්‍යය ගණනය කරයි.', ta: '<strong>புள்ளியியல் முறை:</strong><br>காற்புள்ளியால் பிரிக்கப்பட்ட தரவை உள்ளிடவும் (எ.கா., 5,12,8,9). உங்கள் தரவைச் சுற்றி μ() போன்ற பொத்தான்களைப் பயன்படுத்தி = ஐ அழுத்தவும். எ.கா: <strong>μ(5,12,8,9)</strong> சராசரியைக் கணக்கிடும்.'},
+    matrix: { en: '<strong>Matrix Mode:</strong><br>Enter a matrix in array format, e.g., [[1,2],[3,4]]. Use det() or inv() to wrap it, then press =. Ex: <strong>det([[1,2],[3,4]])</strong> finds the determinant.', si: '<strong>න්‍යාස ප්‍රකාරය:</strong><br>න්‍යාසයක් array ආකාරයෙන් ඇතුළත් කරන්න, උදා: [[1,2],[3,4]]. එය වටා det() හෝ inv() යොදා = ඔබන්න. උදා: <strong>det([[1,2],[3,4]])</strong> මගින් නිශ්චායකය සොයයි.', ta: '<strong>அணி முறை:</strong><br>அணியை வரிசை வடிவத்தில் உள்ளிடவும், எ.கா., [[1,2],[3,4]]. அதைச் சுற்றி det() அல்லது inv() ஐப் பயன்படுத்தி, பின்னர் = ஐ அழுத்தவும். எ.கா: <strong>det([[1,2],[3,4]])</strong> அணிக்கோவையைக் கண்டறிகிறது.'},
+    graph: { en: '<strong>Graph Mode:</strong><br>Enter a function of x (e.g., "2*x^2 - x + 5" or "sin(x)"). Press "Plot" to visualize the function on a graph.', si: '<strong>ප්‍රස්තාර ප්‍රකාරය:</strong><br>x හි ශ්‍රිතයක් ඇතුළත් කරන්න (උදා: "2*x^2 - x + 5" හෝ "sin(x)"). ශ්‍රිතය ප්‍රස්තාරයක දෘශ්‍යමාන කිරීමට "Plot" ඔබන්න.', ta: '<strong>வரைபட முறை:</strong><br>x இன் ஒரு செயல்பாட்டை உள்ளிடவும் (உதாரணமாக, "2*x^2 - x + 5" அல்லது "sin(x)"). செயல்பாட்டை ஒரு வரைபடத்தில் காட்சிப்படுத்த "Plot" ஐ அழுத்தவும்.'},
+    converter: { en: '<strong>Converter Mode:</strong><br>Enter a number, then press a conversion button (e.g., km→m) to convert between units of length, weight, temperature, and volume.', si: '<strong>පරිවර්තක ප්‍රකාරය:</strong><br>අංකයක් ඇතුළත් කර, දිග, බර, උෂ්ණත්වය සහ පරිමාව ඒකක අතර පරිවර්තනය කිරීමට පරිවර්තන බොත්තමක් (උදා: km→m) ඔබන්න.', ta: '<strong>மாற்றி முறை:</strong><br>ஒரு எண்ணை உள்ளிட்டு, நீளம், எடை, வெப்பநிலை மற்றும் கொள்ளளவு அலகுகளுக்கு இடையில் மாற்ற ஒரு மாற்று பொத்தானை (உதாரணமாக, km→m) அழுத்தவும்.'},
+    finance: { en: '<strong>Finance Mode:</strong><br>Calculate simple interest with <strong>SI(P,R,T)</strong> or compound interest with <strong>CI(P,R,T,N)</strong>. P=Principal, R=Rate, T=Time, N=Compounds/year.', si: '<strong>මූල්‍ය ප්‍රකාරය:</strong><br><strong>SI(P,R,T)</strong> සමඟ සරල පොලිය හෝ <strong>CI(P,R,T,N)</strong> සමඟ චක්‍රීය පොලිය ගණනය කරන්න. P=මුදල, R=අනුපාතය, T=කාලය, N=වසරකට වාර ගණන.', ta: '<strong>நிதி முறை:</strong><br><strong>SI(P,R,T)</strong> உடன் எளிய வட்டியையும் அல்லது <strong>CI(P,R,T,N)</strong> உடன் கூட்டு வட்டியையும் கணக்கிடவும். P=அசல், R=விகிதம், T=நேரம், N=ஆண்டுக்கு கூட்டப்படும் தடவைகள்.'},
+    date: { en: '<strong>Date Mode:</strong><br>Calculate the difference between two dates using <strong>DaysBetween(date1, date2)</strong>. Use YYYY-MM-DD format. "Today" gives the current date number.', si: '<strong>දින ප්‍රකාරය:</strong><br><strong>DaysBetween(date1, date2)</strong> භාවිතයෙන් දින දෙකක් අතර වෙනස ගණනය කරන්න. YYYY-MM-DD ආකෘතිය භාවිත කරන්න. "Today" මඟින් වත්මන් දින අංකය ලබා දේ.', ta: '<strong>தேதி முறை:</strong><br><strong>DaysBetween(date1, date2)</strong> ஐப் பயன்படுத்தி இரண்டு தேதிகளுக்கு இடையிலான வேறுபாட்டைக் கணக்கிடவும். YYYY-MM-DD வடிவமைப்பைப் பயன்படுத்தவும். "Today" தற்போதைய தேதி எண்ணைக் கொடுக்கும்.'}
 };
 
 
 // --- UI & THEME ---
-function showToast(message, type = 'success') { // types: success, error, info
+function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type} text-sm font-medium`;
     toast.textContent = message;
@@ -485,8 +399,8 @@ function showToast(message, type = 'success') { // types: success, error, info
 }
 
 const themeClasses = {
-    dark: { body: 'body-dark', sidebar: 'sidebar-dark', calc: 'calc-dark', display: 'display-dark', expr: 'expr-dark', result: 'result-dark', text: 'text-dark', copy: 'key-action-dark', key_normal: 'key-normal-dark', key_action: 'key-action-dark', key_equals: 'key-equals-dark', key_func: 'key-func-dark', key_op: 'key-op-dark', menu_btn: 'menu-btn-dark', menu_active: 'menu-btn-active-dark', hint: 'hint-dark', graph_border: 'graph-border-dark', graph_bg: 'graph-bg-dark', chart_color: 'rgba(139, 92, 246, 0.8)', chart_text: 'white', chart_grid: 'rgba(255, 255, 255, 0.1)', frame: 'frame-dark' },
-    light: { body: 'body-light', sidebar: 'sidebar-light', calc: 'calc-light', display: 'display-light', expr: 'expr-light', result: 'result-light', text: 'text-light', copy: 'key-action-light', key_normal: 'key-normal-light', key_action: 'key-action-light', key_equals: 'key-equals-light', key_func: 'key-func-light', key_op: 'key-op-light', menu_btn: 'menu-btn-light', menu_active: 'menu-btn-active-light', hint: 'hint-light', graph_border: 'graph-border-light', graph_bg: 'graph-bg-light', chart_color: 'rgba(124, 58, 237, 1)', chart_text: '#1f2937', chart_grid: 'rgba(0, 0, 0, 0.1)', frame: 'frame-light' }
+    dark: { body: 'body-dark', sidebar: 'sidebar-dark', calc: 'calc-dark', display: 'display-dark', expr: 'expr-dark', result: 'result-dark', text: 'text-dark', copy: 'key-action-dark', key_normal: 'key-normal-dark', key_action: 'key-action-dark', key_equals: 'key-equals-dark', key_func: 'key-func-dark', key_op: 'key-op-dark', menu_btn: 'menu-btn-dark', menu_active: 'menu-btn-active-dark', hint: 'hint-dark', graph_border: 'graph-border-dark', graph_bg: 'graph-bg-dark', chart_color: 'rgba(139, 92, 246, 0.8)', chart_text: 'white', chart_grid: 'rgba(255, 255, 255, 0.1)', frame: 'frame-dark', photomath: 'photomath-dark', step: 'step-item-dark' },
+    light: { body: 'body-light', sidebar: 'sidebar-light', calc: 'calc-light', display: 'display-light', expr: 'expr-light', result: 'result-light', text: 'text-light', copy: 'key-action-light', key_normal: 'key-normal-light', key_action: 'key-action-light', key_equals: 'key-equals-light', key_func: 'key-func-light', key_op: 'key-op-light', menu_btn: 'menu-btn-light', menu_active: 'menu-btn-active-light', hint: 'hint-light', graph_border: 'graph-border-light', graph_bg: 'graph-bg-light', chart_color: 'rgba(124, 58, 237, 1)', chart_text: '#1f2937', chart_grid: 'rgba(0, 0, 0, 0.1)', frame: 'frame-light', photomath: 'photomath-light', step: 'step-item-light' }
 };
 
 function applyTheme(theme) {
@@ -494,15 +408,21 @@ function applyTheme(theme) {
     const classes = themeClasses[theme];
     const oppositeClasses = themeClasses[theme === 'dark' ? 'light' : 'dark'];
 
-    const swapClass = (el, prop) => el && el.classList.replace(oppositeClasses[prop], classes[prop]);
+    const swapClass = (el, prop) => {
+        if(el) {
+            el.classList.remove(oppositeClasses[prop]);
+            el.classList.add(classes[prop]);
+        }
+    };
     
     swapClass(appBody, 'body'); swapClass(sidebar, 'sidebar'); swapClass(waterFrame, 'frame'); swapClass(calculator, 'calc');
     swapClass(instructionsPanel, 'frame');
-    swapClass(document.querySelector('.display'), 'display'); swapClass(exprEl, 'expr'); swapClass(resEl, 'result');
+    swapClass(displayContainer, 'display'); swapClass(exprEl, 'expr'); swapClass(resEl, 'result');
     if(historyEl.querySelector('h3')) swapClass(historyEl.querySelector('h3'), 'text');
-    if(customListEl.querySelector('h3')) swapClass(customListEl.querySelector('h3'), 'result');
     swapClass(copyBtn, 'copy');
     document.querySelectorAll('.hint').forEach(el => swapClass(el, 'hint'));
+    swapClass(photomathContainer, 'photomath');
+    document.querySelectorAll('.step-item-dark, .step-item-light').forEach(el => swapClass(el, 'step'));
     
     document.querySelectorAll('.menu-btn').forEach(btn => {
         btn.classList.remove(oppositeClasses.menu_btn, oppositeClasses.menu_active);
@@ -510,34 +430,43 @@ function applyTheme(theme) {
         if (btn.classList.contains('active')) btn.classList.add(classes.menu_active);
     });
 
-    graphCanvas.classList.remove(oppositeClasses.graph_border, oppositeClasses.graph_bg);
-    graphCanvas.classList.add(classes.graph_border, classes.graph_bg);
+    if (graphCanvas) {
+        graphCanvas.classList.remove(oppositeClasses.graph_border, oppositeClasses.graph_bg);
+        graphCanvas.classList.add(classes.graph_border, classes.graph_bg);
+    }
     
     renderKeys(currentMode);
     
     if (currentMode === 'graph' && expression.trim() !== '' && graphChart) {
-        plotGraph(expression); // Re-plot with new theme colors
+        plotGraph(expression);
     }
     
-    renderHistory(window.historyData || []); renderCustomList();
+    renderHistory(); 
 
-    const topButtons = [themeToggleBtn, voiceBtn, helpBtn, languageSelector];
+    const topButtons = [themeToggleBtn, voiceBtn, helpBtn, languageSelector, logoutBtn];
     if (theme === 'dark') {
-        moonIcon.classList.remove('hidden'); sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+        sunIcon.classList.add('hidden');
         topButtons.forEach(btn => {
-            btn.classList.add('bg-gray-800', 'text-gray-400');
-            btn.classList.remove('bg-gray-200', 'text-gray-700');
+            if(btn && btn.id !== 'logoutBtn') {
+                btn.classList.add('bg-gray-800', 'text-gray-400');
+                btn.classList.remove('bg-gray-200', 'text-gray-700');
+            }
         });
     } else {
-        moonIcon.classList.add('hidden'); sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden'); 
+        sunIcon.classList.remove('hidden');
         topButtons.forEach(btn => {
-            btn.classList.remove('bg-gray-800', 'text-gray-400');
-            btn.classList.add('bg-gray-200', 'text-gray-700');
+             if(btn && btn.id !== 'logoutBtn') {
+                btn.classList.remove('bg-gray-800', 'text-gray-400');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            }
         });
     }
 }
 
 function renderKeys(mode) {
+    if (!keys) return;
     const classes = themeClasses[currentTheme];
     keys.innerHTML = '';
     const isSpecialGrid = ['programmer', 'scientific'].includes(mode);
@@ -548,19 +477,17 @@ function renderKeys(mode) {
     if(mode === 'matrix') gridClass = 'grid-cols-4';
     if(mode === 'graph') gridClass = 'grid-cols-4';
 
-
     keys.className = `keys grid ${gridClass} gap-2`;
 
     const layout = layouts[mode] || layouts['standard'];
     layout.flat().forEach(val => {
         if (!val) {
-            keys.appendChild(document.createElement('div')); // Placeholder for grid
+            keys.appendChild(document.createElement('div'));
             return;
         };
         let btn = document.createElement('button');
         btn.className = 'key p-2.5 rounded-xl text-lg font-semibold shadow-md transition duration-150 flex items-center justify-center';
         
-        // Determine button type and base color
         let keyTypeClass, textColorClass;
         
         const isAction = ['C', '⌫', 'MC', 'MR'].includes(val);
@@ -576,11 +503,11 @@ function renderKeys(mode) {
 
         textColorClass = (isFunc) 
             ? (currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700')
-            : (currentTheme === 'dark' ? 'text-white' : 'text-gray-800');
+            : (isEquals ? 'text-white' : (currentTheme === 'dark' ? 'text-white' : 'text-gray-800'));
+
 
         btn.classList.add(keyTypeClass, textColorClass);
         
-        // Overrides for specific buttons
         if (val === 'C') btn.classList.replace(keyTypeClass, 'bg-red-600'), btn.classList.replace(textColorClass, 'text-white');
         if (val === 'Plot' || val === 'Ask AI') {
             btn.classList.replace(keyTypeClass, 'bg-emerald-600'), btn.classList.replace(textColorClass, 'text-white');
@@ -588,7 +515,6 @@ function renderKeys(mode) {
        
         if (val === '=') { 
           if(mode === 'programmer') {
-             // No special span for programmer =
           } else if (mode === 'matrix') {
              btn.classList.add('col-span-4');
           } else if (!['date', 'finance', 'statistics', 'matrix'].includes(mode)) {
@@ -603,530 +529,202 @@ function renderKeys(mode) {
 }
 
 function render(){
-    exprEl.textContent = expression || '0';
-    resEl.classList.remove('result-animate');
+    if (exprEl) exprEl.textContent = expression || '0';
+    if (resEl) resEl.classList.remove('result-animate');
     
     const hint = document.querySelector('.hint');
-    const hintColor = currentTheme === 'dark' ? 'text-gray-500' : 'text-gray-600';
-    const violetColor = currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700';
-    const emeraldColor = currentTheme === 'dark' ? 'text-emerald-400' : 'text-emerald-700';
+    if (hint) {
+        const hintColor = currentTheme === 'dark' ? 'text-gray-500' : 'text-gray-600';
+        const violetColor = currentTheme === 'dark' ? 'text-violet-400' : 'text-violet-700';
+        const emeraldColor = currentTheme === 'dark' ? 'text-emerald-400' : 'text-emerald-700';
 
-    hint.className = 'hint text-xs mt-2 text-center'; // Reset
-    if (currentMode === 'ai') { hint.textContent = 'Ask any math question in natural language'; hint.classList.add(emeraldColor); }
-    else if (currentMode === 'finance') { hint.textContent = 'Use SI(P,R,T) or CI(P,R,T,N)'; hint.classList.add(violetColor); }
-    else if (currentMode === 'graph') { hint.textContent = 'Enter f(x) like 2*x^2. Press Plot.'; hint.classList.add(emeraldColor); }
-    else { hint.textContent = 'Keyboard and Voice supported'; hint.classList.add(hintColor); }
+        hint.className = 'hint text-xs mt-2 text-center'; // Reset
+        if (currentMode === 'ai') { hint.textContent = 'Ask any math question in natural language'; hint.classList.add(emeraldColor); }
+        else if (currentMode === 'finance') { hint.textContent = 'Use SI(P,R,T) or CI(P,R,T,N)'; hint.classList.add(violetColor); }
+        else if (currentMode === 'graph') { hint.textContent = 'Enter f(x) like 2*x^2. Press Plot.'; hint.classList.add(emeraldColor); }
+        else if (currentMode === 'photomath') { hint.textContent = 'Upload an image of a math problem'; hint.classList.add(emeraldColor); }
+        else { hint.textContent = 'Keyboard and Voice supported'; hint.classList.add(hintColor); }
+    }
 
-    customListEl.classList.toggle('hidden', currentMode !== 'custom');
-    historyEl.classList.toggle('hidden', currentMode === 'custom');
-    graphContainer.classList.toggle('hidden', currentMode !== 'graph');
+    const isPhotomath = currentMode === 'photomath';
+    if (photomathContainer) photomathContainer.classList.toggle('hidden', !isPhotomath);
+    if (keys) keys.classList.toggle('hidden', isPhotomath);
+    if (displayContainer) displayContainer.classList.toggle('hidden', isPhotomath);
+    if (controlsContainer) controlsContainer.classList.toggle('hidden', isPhotomath);
+
+    if(historyEl) historyEl.classList.toggle('hidden', false);
+    if(graphContainer) graphContainer.classList.toggle('hidden', currentMode !== 'graph');
 }
 
 // --- SPECIALIZED CALCULATION LOGIC ---
+const stats={parse:t=>t?t.split(",").map(t=>parseFloat(t.trim())).filter(t=>!isNaN(t)):[],sum:t=>t.reduce((t,e)=>t+e,0),mean:t=>0===t.length?0:stats.sum(t)/t.length,variance:t=>{if(t.length<2)return 0;const e=stats.mean(t);return stats.sum(t.map(t=>(t-e)**2))/(t.length-1)},stddev:t=>Math.sqrt(stats.variance(t))};
+const matrix={parse:t=>JSON.parse(t.replace(/\[/g,"[").replace(/\]/g,"]")),det:t=>{if(2===t.length)return t[0][0]*t[1][1]-t[0][1]*t[1][0];if(3===t.length)return t[0][0]*(t[1][1]*t[2][2]-t[1][2]*t[2][1])-t[0][1]*(t[1][0]*t[2][2]-t[1][2]*t[2][0])+t[0][2]*(t[1][0]*t[2][1]-t[1][1]*t[2][0]);throw new Error("Only 2x2 or 3x3 matrix supported for determinant")},inv:t=>{if(2!==t.length)throw new Error("Only 2x2 matrix supported for inverse");const e=matrix.det(t);if(0===e)throw new Error("Matrix not invertible");return[[t[1][1]/e,-t[0][1]/e],[-t[1][0]/e,t[0][0]/e]]}};
+const dateHelpers={parseDate:t=>{const e=new Date(t.trim());return isNaN(e.getTime())?null:e},daysBetween:(t,e)=>{const r=dateHelpers.parseDate(t),a=dateHelpers.parseDate(e);return r&&a?Math.ceil(Math.abs(a-r)/864e5):"Error: Invalid Date"}};
 
-// Statistics Helpers
-const stats = {
-    parse: (str) => {
-        if (!str) return [];
-        return str.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-    },
-    sum: (arr) => arr.reduce((acc, val) => acc + val, 0),
-    mean: (arr) => arr.length === 0 ? 0 : stats.sum(arr) / arr.length,
-    variance: (arr) => {
-        if (arr.length < 2) return 0;
-        const m = stats.mean(arr);
-        return stats.sum(arr.map(x => (x - m) ** 2)) / (arr.length -1);
-    },
-    stddev: (arr) => Math.sqrt(stats.variance(arr)),
-};
-
-// Matrix Helpers
-const matrix = {
-    parse: (str) => JSON.parse(str.replace(/\[/g, '[').replace(/\]/g, ']')),
-    det: (m) => {
-        if (m.length === 2) return m[0][0] * m[1][1] - m[0][1] * m[1][0];
-        if (m.length === 3) return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1]) - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0]) + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
-        throw new Error('Only 2x2 or 3x3 matrix supported for determinant');
-    },
-    inv: (m) => {
-        if (m.length !== 2) throw new Error('Only 2x2 matrix supported for inverse');
-        const d = matrix.det(m);
-        if (d === 0) throw new Error('Matrix not invertible');
-        return [[m[1][1]/d, -m[0][1]/d], [-m[1][0]/d, m[0][0]/d]];
-    }
-};
-
-// Date Helpers
-const dateHelpers = {
-    parseDate: (dateStr) => {
-        const date = new Date(dateStr.trim());
-        return isNaN(date.getTime()) ? null : date;
-    },
-    daysBetween: (date1Str, date2Str) => {
-        const date1 = dateHelpers.parseDate(date1Str);
-        const date2 = dateHelpers.parseDate(date2Str);
-        if (date1 && date2) {
-            const diffTime = Math.abs(date2 - date1);
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        }
-        return 'Error: Invalid Date';
-    }
-};
-
-function preProcessExpression(expr) {
-    let processed = expr;
-
-    // Finance: SI(P,R,T) and CI(P,R,T,N)
-    processed = processed.replace(/(SI|CI)\((.*?)\)/g, (match, func, args) => {
-        try {
-            const params = args.split(',').map(Number);
-            if (params.some(isNaN)) return 'Error';
-            if (func === 'SI') {
-                if (params.length !== 3) return 'Error: SI(P,R,T)';
-                const [p, r, t] = params;
-                return (p * (r / 100) * t); // Simple Interest
-            }
-            if (func === 'CI') {
-                if (params.length !== 4) return 'Error: CI(P,R,T,N)';
-                const [p, r, t, n] = params;
-                const interest = p * Math.pow((1 + (r / 100) / n), n * t) - p; // Compound Interest
-                return interest;
-            }
-        } catch (e) { return 'Error'; }
-        return match;
-    });
-
-    // Date: DaysBetween(date1, date2)
-    processed = processed.replace(/DaysBetween\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g, (match, date1, date2) => {
-         return dateHelpers.daysBetween(date1.replace(/'|"/g, ''), date2.replace(/'|"/g, ''));
-    });
-
-    // Statistics & Matrix (existing logic)
-    processed = processed.replace(/(μ|σ²|σ|Σx|n|det|inv)\((.*?)\)/g, (match, func, args) => {
-        try {
-            switch (func) {
-                case 'μ': return stats.mean(stats.parse(args));
-                case 'σ': return stats.stddev(stats.parse(args));
-                case 'σ²': return stats.variance(stats.parse(args));
-                case 'Σx': return stats.sum(stats.parse(args));
-                case 'n': return stats.parse(args).length;
-                case 'det': return matrix.det(matrix.parse(args));
-                case 'inv': return `[[${matrix.inv(matrix.parse(args)).join('],[')}]]`;
-                default: return match;
-            }
-        } catch (e) {
-            console.error(`Error in ${func}:`, e);
-            return 'Error';
-        }
-    });
-
-    return processed;
-}
-
-function evaluateExpression(expr){
-    try {
-        let processedExpr = preProcessExpression(expr);
-        
-        // Handle scientific mode angle unit
-        if (currentMode === 'scientific' && angleUnit === 'deg') {
-             processedExpr = processedExpr.replace(/(sin|cos|tan)\(([^)]+)\)/g, (match, func, content) => {
-                // Evaluate content inside brackets first, then convert to radians
-                try {
-                    const innerValue = evaluateExpression(content);
-                    if (isNaN(innerValue)) return 'Error';
-                    return `Math.${func}(${innerValue} * Math.PI / 180)`;
-                } catch(e) {
-                    return 'Error';
-                }
-            });
-        }
-        
-        let safeExpr = processedExpr.replace(/π/g, 'Math.PI').replace(/e/g, 'Math.E')
-            .replace(/√\(/g, 'Math.sqrt(').replace(/ln\(/g, 'Math.log(')
-            .replace(/log\(/g, 'Math.log10(').replace(/\^/g, '**')
-            .replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(')
-            .replace(/tan\(/g, 'Math.tan(').replace(/%/g, '/100')
-            .replace(/abs\(/g, 'Math.abs(');
-
-        if (currentMode === 'programmer') {
-            try {
-                safeExpr = safeExpr.replace(/AND/g, '&').replace(/OR/g, '|').replace(/XOR/g, '^').replace(/NOT/g, '~').replace(/<</g, '<<').replace(/>>/g, '>>');
-                return eval(safeExpr);
-            } catch(e) {
-                return "Error";
-            }
-        }
-        
-        return Function('"use strict";return (' + safeExpr + ')')();
-    } catch (e) {
-        console.error("Evaluation Error:", e);
-        return 'Error';
-    }
-}
-
+function preProcessExpression(expr){let processed=expr;processed=processed.replace(/(SI|CI)\((.*?)\)/g,((t,e,r)=>{try{const a=r.split(",").map(Number);if(a.some(isNaN))return"Error";if("SI"===e){if(3!==a.length)return"Error: SI(P,R,T)";const[t,n,o]=a;return t*(n/100)*o}if("CI"===e){if(4!==a.length)return"Error: CI(P,R,T,N)";const[t,n,o,s]=a;return t*Math.pow(1+(n/100)/s,s*o)-t}}catch(t){return"Error"}return t}));processed=processed.replace(/DaysBetween\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,((t,e,r)=>dateHelpers.daysBetween(e.replace(/'|"/g,""),r.replace(/'|"/g,""))));processed=processed.replace(/(μ|σ²|σ|Σx|n|det|inv)\((.*?)\)/g,((t,e,r)=>{try{switch(e){case"μ":return stats.mean(stats.parse(r));case"σ":return stats.stddev(stats.parse(r));case"σ²":return stats.variance(stats.parse(r));case"Σx":return stats.sum(stats.parse(r));case"n":return stats.parse(r).length;case"det":return matrix.det(matrix.parse(r));case"inv":return`[[${matrix.inv(matrix.parse(r)).join("],[")}]]`;default:return t}}catch(t){return console.error(`Error in ${e}:`,t),"Error"}}));return processed}
+function evaluateExpression(expr){try{let processedExpr=preProcessExpression(expr);"scientific"===currentMode&&"deg"===angleUnit&&(processedExpr=processedExpr.replace(/(sin|cos|tan)\(([^)]+)\)/g,((t,e,r)=>{try{const a=evaluateExpression(r);return isNaN(a)?"Error":`Math.${e}(${a}*Math.PI/180)`}catch(t){return"Error"}})));let safeExpr=processedExpr.replace(/π/g,"Math.PI").replace(/e/g,"Math.E").replace(/√\(/g,"Math.sqrt(").replace(/ln\(/g,"Math.log(").replace(/log\(/g,"Math.log10(").replace(/\^/g,"**").replace(/sin\(/g,"Math.sin(").replace(/cos\(/g,"Math.cos(").replace(/tan\(/g,"Math.tan(").replace(/%/g,"/100").replace(/abs\(/g,"Math.abs(");if("programmer"===currentMode)try{return safeExpr=safeExpr.replace(/AND/g,"&").replace(/OR/g,"|").replace(/XOR/g,"^").replace(/NOT/g,"~").replace(/<</g,"<<").replace(/>>/g,">>"),eval(safeExpr)}catch(t){return"Error"}return Function('"use strict";return ('+safeExpr+")")()}catch(t){return console.error("Evaluation Error:",t),"Error"}}
 
 // --- AI CALCULATION ---
-async function calculateWithAI(userQuery) {
-    if (!userQuery.trim()) {
-        showToast('Please enter a question for the AI.', 'error');
-        return;
-    }
-    showToast('Asking AI...', 'info');
-    resEl.textContent = '...'; 
+async function calculateWithAI(userQuery) { if (!userQuery.trim()) { showToast('Please enter a question for the AI.', 'error'); return; } showToast('Asking AI...', 'info'); resEl.textContent = '...'; const apiKey = ""; const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`; const systemPrompt = "You are a powerful calculator. Evaluate the user's mathematical query. Respond with only the final numerical answer or a simplified mathematical expression. Do not provide explanations or any extra text. For example, if the user asks 'what is 5 plus 5', you should only respond '10'."; const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, }; try { const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (!response.ok) throw new Error(`API call failed with status: ${response.status}`); const result = await response.json(); const candidate = result.candidates?.[0]; if (candidate && candidate.content?.parts?.[0]?.text) { const aiResult = candidate.content.parts[0].text.trim(); resEl.textContent = aiResult; pushHistory(userQuery, aiResult); expression = aiResult; } else { throw new Error('Invalid response structure from AI'); } } catch (error) { console.error("AI Calculation Error:", error); resEl.textContent = 'AI Error'; showToast('Failed to get response from AI.', 'error'); } finally { render(); } }
 
-    const apiKey = ""; 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-    const systemPrompt = "You are a powerful calculator. Evaluate the user's mathematical query. Respond with only the final numerical answer or a simplified mathematical expression. Do not provide explanations or any extra text. For example, if the user asks 'what is 5 plus 5', you should only respond '10'.";
-
-    const payload = {
-        contents: [{ parts: [{ text: userQuery }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-    };
-
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
-
-        const result = await response.json();
-        const candidate = result.candidates?.[0];
-
-        if (candidate && candidate.content?.parts?.[0]?.text) {
-            const aiResult = candidate.content.parts[0].text.trim();
-            resEl.textContent = aiResult;
-            pushHistory(userQuery, aiResult);
-            expression = aiResult;
-        } else {
-            throw new Error('Invalid response structure from AI');
-        }
-    } catch (error) {
-        console.error("AI Calculation Error:", error);
-        resEl.textContent = 'AI Error';
-        showToast('Failed to get response from AI.', 'error');
-    } finally {
-        render();
-    }
-}
-
-
-// --- GRAPHING LOGIC (FIXED) ---
-function sanitizeGraphExpression(expr) {
-    return expr
-        .replace(/(\d)x/g, '$1*x').replace(/x\(/g, 'x*(').replace(/\)(\d)/g, ')*$1')
-        .replace(/\)x/g, ')*x').replace(/\)\(/g, ')*(');
-}
-
-function plotGraph(funcStr){
-    const classes = themeClasses[currentTheme];
-    const ctx = graphCanvas.getContext('2d');
-    const dataPoints = [];
-    try {
-        const sanitizedStr = sanitizeGraphExpression(funcStr);
-        const safeFuncStr = sanitizedStr.replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(').replace(/tan\(/g, 'Math.tan(').replace(/log\(/g, 'Math.log10(').replace(/ln\(/g, 'Math.log(').replace(/√\(/g, 'Math.sqrt(').replace(/\^/g, '**').replace(/e/g, 'Math.E').replace(/π/g, 'Math.PI');
-        const func = new Function('x', `"use strict"; return ${safeFuncStr}`);
-        
-        for (let x = -10; x <= 10; x += 0.1) {
-            try {
-                let y = func(x.toPrecision(4));
-                if (isFinite(y)) dataPoints.push({ x: x, y: y });
-            } catch (e) { /* ignore single point errors */ }
-        }
-    } catch (e) {
-        showToast('Invalid function syntax!', 'error');
-        return;
-    }
-    if (dataPoints.length === 0) { showToast('No data points to plot.', 'error'); return; }
-    
-    if (graphChart) graphChart.destroy();
-    graphChart = new Chart(ctx, {
-        type: 'line',
-        data: { datasets: [{ label: `f(x) = ${funcStr}`, data: dataPoints, borderColor: classes.chart_color, borderWidth: 2, pointRadius: 0, tension: 0.1 }] },
-        options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'linear', position: 'bottom', title: { display: true, text: 'X Axis', color: classes.chart_text }, grid: { color: classes.chart_grid }, ticks: { color: classes.chart_text } }, y: { title: { display: true, text: 'Y Axis', color: classes.chart_text }, grid: { color: classes.chart_grid }, ticks: { color: classes.chart_text } } }, plugins: { legend: { labels: { color: classes.chart_text } } } }
-    });
-    showToast('Graph plotted successfully', 'success');
-    pushHistory('Graph: f(x)=' + funcStr, 'Plotted');
-}
+// --- GRAPHING LOGIC ---
+function sanitizeGraphExpression(expr) { return expr.replace(/(\d)x/g, '$1*x').replace(/x\(/g, 'x*(').replace(/\)(\d)/g, ')*$1').replace(/\)x/g, ')*x').replace(/\)\(/g, ')*('); }
+function plotGraph(funcStr) { const classes = themeClasses[currentTheme]; const ctx = graphCanvas.getContext('2d'); const dataPoints = []; try { const sanitizedStr = sanitizeGraphExpression(funcStr); const safeFuncStr = sanitizedStr.replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(').replace(/tan\(/g, 'Math.tan(').replace(/log\(/g, 'Math.log10(').replace(/ln\(/g, 'Math.log(').replace(/√\(/g, 'Math.sqrt(').replace(/\^/g, '**').replace(/e/g, 'Math.E').replace(/π/g, 'Math.PI'); const func = new Function('x', `"use strict"; return ${safeFuncStr}`); for (let x = -10; x <= 10; x += 0.1) { try { let y = func(x.toPrecision(4)); if (isFinite(y)) dataPoints.push({ x: x, y: y }); } catch (e) {} } } catch (e) { showToast('Invalid function syntax!', 'error'); return; } if (dataPoints.length === 0) { showToast('No data points to plot.', 'error'); return; } if (graphChart) graphChart.destroy(); graphChart = new Chart(ctx, { type: 'line', data: { datasets: [{ label: `f(x) = ${funcStr}`, data: dataPoints, borderColor: classes.chart_color, borderWidth: 2, pointRadius: 0, tension: 0.1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'linear', position: 'bottom', title: { display: true, text: 'X Axis', color: classes.chart_text }, grid: { color: classes.chart_grid }, ticks: { color: classes.chart_text } }, y: { title: { display: true, text: 'Y Axis', color: classes.chart_text }, grid: { color: classes.chart_grid }, ticks: { color: classes.chart_text } } }, plugins: { legend: { labels: { color: classes.chart_text } } } } }); showToast('Graph plotted successfully', 'success'); pushHistory('Graph: f(x)=' + funcStr, 'Plotted'); }
 
 // --- VOICE COMMANDS ---
-function setupSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        voiceBtn.disabled = true;
-        showToast('Voice recognition not supported in this browser.', 'error');
-        return;
-    }
-    recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.lang = languageSelector.value;
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+function setupSpeechRecognition() { const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SpeechRecognition) { voiceBtn.disabled = true; showToast('Voice recognition not supported in this browser.', 'error'); return; } recognition = new SpeechRecognition(); recognition.continuous = false; recognition.lang = languageSelector.value; recognition.interimResults = false; recognition.maxAlternatives = 1; recognition.onstart = () => { isListening = true; voiceBtn.classList.add('mic-active', 'bg-red-500'); showToast('Listening...', 'info'); }; recognition.onend = () => { isListening = false; voiceBtn.classList.remove('mic-active', 'bg-red-500'); }; recognition.onerror = (event) => { showToast(`Voice error: ${event.error}`, 'error'); }; recognition.onresult = (event) => { const transcript = event.results[0][0].transcript.trim().toLowerCase(); showToast(`You said: "${transcript}"`, 'info'); processVoiceCommand(transcript); }; }
+function processVoiceCommand(command) { let processed = command.replace(/ප්ලස්|එකතු කිරීම|plus/g, '+').replace(/මයිනස්|අඩු කිරීම|minus/g, '-').replace(/ටයිම්ස්|ගුණ කිරීම|times|multiply/g, '*').replace(/ඩිවයිඩඩ් බයි|බෙදීම|divided by/g, '/').replace(/පොයින්ට්|point/g, '.').replace(/ඕපන් බ්‍රැකට්|open bracket/g, '(').replace(/ක්ලෝස් බ්‍රැකට්|close bracket/g, ')'); if (processed.includes('ඊක්වල්ස්') || processed.includes('සමානයි') || processed.includes('equals') || processed.includes('equal to')) { const actionBtn = currentMode === 'ai' ? '[data-value="Ask AI"]' : '[data-value="="]'; document.querySelector(actionBtn)?.click(); return; } if (processed.includes('ක්ලියර්') || processed.includes('clear')) { document.querySelector('[data-value="C"]')?.click(); return; } if (processed.includes('බැක්ස්පේස්') || processed.includes('ඩිලීට්') || processed.includes('backspace') || processed.includes('delete')) { document.querySelector('[data-value="⌫"]')?.click(); return; } processed = processed.replace(/[^0-9+\-*/().,\[\]^x\s]/g, ''); expression += processed; render(); }
 
-    recognition.onstart = () => { isListening = true; voiceBtn.classList.add('mic-active', 'bg-red-500'); showToast('Listening...', 'info'); };
-    recognition.onend = () => { isListening = false; voiceBtn.classList.remove('mic-active', 'bg-red-500'); };
-    recognition.onerror = (event) => { showToast(`Voice error: ${event.error}`, 'error'); };
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript.trim().toLowerCase();
-        showToast(`You said: "${transcript}"`, 'info');
-        processVoiceCommand(transcript);
-    };
-}
+// --- INSTRUCTIONS ---
+function updateInstructions(mode) { const langCode = languageSelector.value.split('-')[0]; const lang = modeInstructions[mode]?.[langCode] ? langCode : 'en'; const menuItem = menuItems.find(item => item.mode === mode); if (menuItem) { instructionsTitle.innerHTML = instructionTitles[lang](menuItem.icon, menuItem.label); } instructionsContent.innerHTML = (modeInstructions[mode] && modeInstructions[mode][lang]) ? modeInstructions[mode][lang] : 'Instructions not available in the selected language.'; }
 
-function processVoiceCommand(command) {
-    let processed = command
-        .replace(/ප්ලස්|එකතු කිරීම|plus/g, '+').replace(/මයිනස්|අඩු කිරීම|minus/g, '-')
-        .replace(/ටයිම්ස්|ගුණ කිරීම|times|multiply/g, '*')
-        .replace(/ඩිවයිඩඩ් බයි|බෙදීම|divided by/g, '/').replace(/පොයින්ට්|point/g, '.')
-        .replace(/ඕපන් බ්‍රැකට්|open bracket/g, '(').replace(/ක්ලෝස් බ්‍රැකට්|close bracket/g, ')');
+// --- HISTORY LOGIC ---
+function pushHistory(expr, res) { if (historyData.length > 20) historyData.pop(); historyData.unshift({ expression: expr, result: res }); renderHistory(); }
+function renderHistory() { if(!historyEl) return; const classes = themeClasses[currentTheme]; historyEl.innerHTML = `<h3 class="font-bold mb-2 ${classes.text}">History</h3>`; if (historyData.length === 0) { historyEl.innerHTML += `<p class="text-xs ${classes.hint}">No history yet.</p>`; return; } historyData.forEach(item => { const div = document.createElement('div'); div.className = `p-2 rounded-md cursor-pointer transition-colors history-item-${currentTheme}`; div.innerHTML = `<div class="text-xs truncate ${classes.expr}">${item.expression}</div><div class="font-semibold truncate ${classes.result}">= ${item.result}</div>`; div.onclick = () => { if (currentMode !== 'photomath') { expression = item.expression; resEl.textContent = item.result; render(); } }; historyEl.appendChild(div); }); }
 
-    if (processed.includes('ඊක්වල්ස්') || processed.includes('සමානයි') || processed.includes('equals') || processed.includes('equal to')) {
-        const actionBtn = currentMode === 'ai' ? '[data-value="Ask AI"]' : '[data-value="="]';
-        document.querySelector(actionBtn)?.click(); return;
-    }
-    if (processed.includes('ක්ලියර්') || processed.includes('clear')) { document.querySelector('[data-value="C"]')?.click(); return; }
-    if (processed.includes('බැක්ස්පේස්') || processed.includes('ඩිලීට්') || processed.includes('backspace') || processed.includes('delete')) { document.querySelector('[data-value="⌫"]')?.click(); return; }
-
-    processed = processed.replace(/[^0-9+\-*/().,\[\]^x\s]/g, '');
-    expression += processed;
-    render();
-}
-
-function updateInstructions(mode) {
-    const langCode = languageSelector.value.split('-')[0]; // e.g., 'en-US' -> 'en'
-    const lang = modeInstructions[mode]?.[langCode] ? langCode : 'en'; // fallback to English
-
-    const menuItem = menuItems.find(item => item.mode === mode);
-    if (menuItem) {
-        instructionsTitle.innerHTML = instructionTitles[lang](menuItem.icon, menuItem.label);
-    }
-    instructionsContent.innerHTML = (modeInstructions[mode] && modeInstructions[mode][lang]) 
-        ? modeInstructions[mode][lang] 
-        : 'Instructions not available in the selected language.';
-}
-
+// --- PHOTOMATH LOGIC ---
+const mockSolution = { problem: '2x + 5 = 15', answer: 'x = 5', steps: { en: ['Subtract 5 from both sides: 2x + 5 - 5 = 15 - 5', 'Simplify: 2x = 10', 'Divide both sides by 2: 2x / 2 = 10 / 2', 'Final Answer: x = 5'], si: ['දෙපසෙන්ම 5ක් අඩු කරන්න: 2x + 5 - 5 = 15 - 5', 'සුළු කරන්න: 2x = 10', 'දෙපසම 2න් බෙදන්න: 2x / 2 = 10 / 2', 'අවසාන පිළිතුර: x = 5'], ta: ['இருபுறமும் 5ஐக் கழிக்கவும்: 2x + 5 - 5 = 15 - 5', 'எளிதாக்குங்கள்: 2x = 10', 'இருபுறமும் 2ஆல் வகுக்கவும்: 2x / 2 = 10 / 2', 'இறுதி பதில்: x = 5'] } };
+function handleImageUpload(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { uploadedImage.src = e.target.result; uploadArea.classList.add('hidden'); uploadedImage.classList.remove('hidden'); refreshPhotomathBtn.classList.remove('hidden'); showToast('Analyzing problem...', 'info'); setTimeout(() => { solveMockProblem(); }, 1500); }; reader.readAsDataURL(file); }
+function solveMockProblem() { const langCode = languageSelector.value.split('-')[0]; const lang = mockSolution.steps[langCode] ? langCode : 'en'; finalAnswer.textContent = mockSolution.answer; stepsContainer.innerHTML = ''; mockSolution.steps[lang].forEach(stepText => { const stepDiv = document.createElement('div'); const themeClass = currentTheme === 'dark' ? 'step-item-dark' : 'step-item-light'; stepDiv.className = `p-2 border-b ${themeClass}`; stepDiv.textContent = stepText; stepsContainer.appendChild(stepDiv); }); solutionContainer.classList.remove('hidden'); setTimeout(() => { solutionContainer.style.opacity = '1'; }, 10); showToast('Solution found!', 'success'); pushHistory(`Photo: ${mockSolution.problem}`, mockSolution.answer); }
+function resetPhotomath() { uploadedImage.classList.add('hidden'); uploadedImage.src = ''; solutionContainer.classList.add('hidden'); solutionContainer.style.opacity = '0'; uploadArea.classList.remove('hidden'); stepsContainer.classList.add('hidden'); refreshPhotomathBtn.classList.add('hidden'); toggleStepsBtn.textContent = 'Show Steps'; imageUpload.value = ''; }
 
 // --- EVENT HANDLERS ---
-function handleKeyClick(e) {
-    const btn = e.target.closest('button'); if (!btn) return;
-    const val = btn.dataset.value;
-
-    const wrapInFunc = (func) => {
-        expression = `${func.slice(0, -1)}${expression})`;
-    }
-
-    const actions = {
-        'C': () => { expression = ''; resEl.textContent = '0'; },
-        '⌫': () => expression = expression.slice(0, -1),
-        '=': handleEquals,
-        'Ask AI': () => calculateWithAI(expression),
-        'Plot': () => plotGraph(expression),
-        'Save': customSave,
-        'MC': () => { memory = 0; showToast('Memory Cleared'); },
-        'MR': () => { expression += memory; },
-        'M+': () => { memory += Number(resEl.textContent) || 0; showToast(`Added to Memory. M=${memory}`); },
-        'M-': () => { memory -= Number(resEl.textContent) || 0; showToast(`Subtracted from Memory. M=${memory}`); },
-        'x²': () => expression += '^2',
-        '1/x': () => expression += '1/',
-        '+/-': () => expression += '(-',
-        'μ()': () => wrapInFunc('μ()'),
-        'σ()': () => wrapInFunc('σ()'),
-        'σ²()': () => wrapInFunc('σ²()'),
-        'Σx()': () => wrapInFunc('Σx()'),
-        'n()': () => wrapInFunc('n()'),
-        'det()': () => wrapInFunc('det()'),
-        'inv()': () => wrapInFunc('inv()'),
-        'Deg': () => { angleUnit = 'deg'; showToast('Angle unit: Degrees', 'info'); },
-        'Rad': () => { angleUnit = 'rad'; showToast('Angle unit: Radians', 'info'); },
-        'HEX': () => { try { resEl.textContent = '0x' + parseInt(resEl.textContent).toString(16).toUpperCase(); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } },
-        'DEC': () => { try { resEl.textContent = parseInt(resEl.textContent).toString(10); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } },
-        'BIN': () => { try { resEl.textContent = '0b' + parseInt(resEl.textContent).toString(2); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } },
-        'OCT': () => { try { resEl.textContent = '0o' + parseInt(resEl.textContent).toString(8); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } },
-        'Today': () => {
-             const today = new Date();
-             const yyyy = today.getFullYear();
-             const mm = String(today.getMonth() + 1).padStart(2, '0');
-             const dd = String(today.getDate()).padStart(2, '0');
-             expression += `${yyyy}-${mm}-${dd}`;
-        },
-    };
-
-    if (actions[val]) { actions[val](); } 
-    else if (val.includes('→')) { convertUnit(val); } 
-    else { expression += val; }
-    render();
-}
-
-function handleEquals() {
-    if (!expression) return;
-    let res = evaluateExpression(expression);
-    if (res === undefined || res === null || res.toString().includes('Error')) {
-        resEl.textContent = 'Error';
-    } else {
-        res = (typeof res === 'number' && Math.abs(res) > 1e-8) ? parseFloat(res.toPrecision(10)) : res;
-        resEl.textContent = res.toString();
-        pushHistory(expression, resEl.textContent);
-    }
-    expression = resEl.textContent.includes('Error') ? '' : resEl.textContent;
-    resEl.classList.add('result-animate');
-}
-
-function convertUnit(val){
-    const num = Number(expression);
-    let result = 'Error';
-    if(isNaN(num)) { showToast('Enter a number first', 'error'); return; }
-    const conversions = { 'km→m': num*1000, 'm→km': num/1000, 'kg→g': num*1000, 'g→kg': num/1000, '°C→°F': (num*9/5)+32, '°F→°C': (num-32)*5/9, 'L→mL': num*1000, 'mL→L': num/1000 };
-    result = conversions[val];
-    resEl.textContent = result.toFixed(4).replace(/\.?0*$/, '');
-    resEl.classList.add('result-animate');
-    pushHistory(expression + ' ' + val, resEl.textContent);
-    expression = resEl.textContent;
-}
+function handleKeyClick(e) { const btn = e.target.closest('button'); if (!btn) return; const val = btn.dataset.value; const wrapInFunc = (func) => { expression = `${func.slice(0, -1)}${expression})`; }; const actions = { 'C': () => { expression = ''; resEl.textContent = '0'; }, '⌫': () => expression = expression.slice(0, -1), '=': handleEquals, 'Ask AI': () => calculateWithAI(expression), 'Plot': () => plotGraph(expression), 'MC': () => { memory = 0; showToast('Memory Cleared'); }, 'MR': () => { expression += memory; }, 'M+': () => { memory += Number(resEl.textContent) || 0; showToast(`Added to Memory. M=${memory}`); }, 'M-': () => { memory -= Number(resEl.textContent) || 0; showToast(`Subtracted from Memory. M=${memory}`); }, 'x²': () => expression += '^2', '1/x': () => expression += '1/', '+/-': () => expression += '(-', 'μ()': () => wrapInFunc('μ()'), 'σ()': () => wrapInFunc('σ()'), 'σ²()': () => wrapInFunc('σ²()'), 'Σx()': () => wrapInFunc('Σx()'), 'n()': () => wrapInFunc('n()'), 'det()': () => wrapInFunc('det()'), 'inv()': () => wrapInFunc('inv()'), 'Deg': () => { angleUnit = 'deg'; showToast('Angle unit: Degrees', 'info'); }, 'Rad': () => { angleUnit = 'rad'; showToast('Angle unit: Radians', 'info'); }, 'HEX': () => { try { resEl.textContent = '0x' + parseInt(resEl.textContent).toString(16).toUpperCase(); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'DEC': () => { try { resEl.textContent = parseInt(resEl.textContent).toString(10); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'BIN': () => { try { resEl.textContent = '0b' + parseInt(resEl.textContent).toString(2); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'OCT': () => { try { resEl.textContent = '0o' + parseInt(resEl.textContent).toString(8); expression = resEl.textContent; } catch(e){ resEl.textContent = "Error"; } }, 'Today': () => { const today = new Date(); const yyyy = today.getFullYear(); const mm = String(today.getMonth() + 1).padStart(2, '0'); const dd = String(today.getDate()).padStart(2, '0'); expression += `${yyyy}-${mm}-${dd}`; }, }; if (actions[val]) { actions[val](); } else if (val.includes('→')) { convertUnit(val); } else { expression += val; } render(); }
+function handleEquals() { if (!expression) return; let res = evaluateExpression(expression); if (res === undefined || res === null || res.toString().includes('Error')) { resEl.textContent = 'Error'; } else { res = (typeof res === 'number' && Math.abs(res) > 1e-8) ? parseFloat(res.toPrecision(10)) : res; resEl.textContent = res.toString(); pushHistory(expression, resEl.textContent); } expression = resEl.textContent.includes('Error') ? '' : resEl.textContent; resEl.classList.add('result-animate'); }
+function convertUnit(val){ const num = Number(expression); if(isNaN(num)) { showToast('Enter a number first', 'error'); return; } const conversions = { 'km→m': num*1000, 'm→km': num/1000, 'kg→g': num*1000, 'g→kg': num/1000, '°C→°F': (num*9/5)+32, '°F→°C': (num-32)*5/9, 'L→mL': num*1000, 'mL→L': num/1000 }; const result = conversions[val]; resEl.textContent = result.toFixed(4).replace(/\.?0*$/, ''); resEl.classList.add('result-animate'); pushHistory(expression + ' ' + val, resEl.textContent); expression = resEl.textContent; }
 
 // --- INITIALIZATION ---
 function initializeApp() {
-    menuItems.forEach((item, index) => {
-        const btn = document.createElement('button');
-        btn.className = `menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full`;
-        if (index === 0) btn.classList.add('active', 'menu-btn-active-dark');
-        btn.dataset.mode = item.mode;
-        btn.innerHTML = `${item.icon}<span class="hidden menu-label">${item.label}</span>`;
-        menuContainer.appendChild(btn);
-    });
-
-    const languages = {
-        'en-US': 'English (US)', 'si-LK': 'සිංහල (Sri Lanka)', 'ta-LK': 'தமிழ் (Sri Lanka)', 'hi-IN': 'हिन्दी (India)',
-        'es-ES': 'Español (España)', 'fr-FR': 'Français (France)', 'de-DE': 'Deutsch (Deutschland)',
-        'ja-JP': '日本語 (Japan)', 'ru-RU': 'Русский (Россия)', 'ar-SA': 'العربية (SA)'
-    };
-    for (const [code, name] of Object.entries(languages)) {
-        const option = document.createElement('option');
-        option.value = code;
-        option.textContent = name;
-        languageSelector.appendChild(option);
+    const loggedInUser = sessionStorage.getItem('loggedInUser');
+    if (loggedInUser && userIdDisplay) {
+        userIdDisplay.textContent = `Welcome, ${loggedInUser}`;
     }
 
-    renderKeys('standard');
-    applyTheme('dark');
+    if (menuContainer) {
+        menuItems.forEach((item, index) => {
+            const btn = document.createElement('button');
+            btn.className = `menu-btn menu-btn-dark flex items-center justify-center space-x-2 p-3 text-sm hover:bg-violet-500 hover:text-white transition duration-150 rounded-r-full`;
+            if (index === 0) {
+                btn.classList.add('active', 'menu-btn-active-dark');
+                currentMode = item.mode;
+            }
+            btn.dataset.mode = item.mode;
+            btn.innerHTML = `${item.icon}<span class="hidden menu-label">${item.label}</span>`;
+            menuContainer.appendChild(btn);
+        });
+    }
+
+    if(languageSelector){
+        const languages={'en-US':'English (US)','si-LK':'සිංහල (Sri Lanka)','ta-LK':'தமிழ் (Sri Lanka)','hi-IN':'हिन्दी (India)','es-ES':'Español (España)','fr-FR':'Français (France)','de-DE':'Deutsch (Deutschland)','ja-JP':'日本語 (Japan)','ru-RU':'Русский (Россия)','ar-SA':'العربية (SA)'};
+        for(const[code,name]of Object.entries(languages)){const option=document.createElement('option');option.value=code;option.textContent=name;languageSelector.appendChild(option)}
+    }
+    
+    applyTheme('dark'); // Apply theme first
+    renderKeys(currentMode);
+    render();
+    renderHistory();
     setupSpeechRecognition();
 
-    keys.addEventListener('click', handleKeyClick);
-    themeToggleBtn.addEventListener('click', () => applyTheme(currentTheme === 'dark' ? 'light' : 'dark'));
-    voiceBtn.addEventListener('click', () => { if (recognition && !isListening) recognition.start(); });
-    sidebarToggle.addEventListener('click', toggleSidebarWidth);
-    copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(resEl.textContent).then(() => showToast('Result Copied!', 'success'), () => showToast('Copy Failed!', 'error'));
-    });
+    if(keys) keys.addEventListener('click', handleKeyClick);
+    if(themeToggleBtn) themeToggleBtn.addEventListener('click', () => applyTheme(currentTheme === 'dark' ? 'light' : 'dark'));
+    if(voiceBtn) voiceBtn.addEventListener('click', () => { if (recognition && !isListening) recognition.start(); });
+    if(sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebarWidth);
+    if(copyBtn) copyBtn.addEventListener('click', () => { const textToCopy = currentMode === 'photomath' ? finalAnswer.textContent : resEl.textContent; navigator.clipboard.writeText(textToCopy).then(() => showToast('Result Copied!', 'success'), () => showToast('Copy Failed!', 'error')); });
+    if(logoutBtn) logoutBtn.addEventListener('click', () => { sessionStorage.clear(); window.location.href = 'login.html'; });
     
-    languageSelector.addEventListener('change', () => {
-        if (recognition) {
-            recognition.lang = languageSelector.value;
-            showToast(`Voice language set to ${languageSelector.options[languageSelector.selectedIndex].text}`, 'info');
-        }
-        if (isHelpPanelVisible) {
-            updateInstructions(currentMode);
-        }
-    });
+    if(imageUpload) imageUpload.addEventListener('change', handleImageUpload);
+    if(refreshPhotomathBtn) refreshPhotomathBtn.addEventListener('click', resetPhotomath);
+    if(toggleStepsBtn) toggleStepsBtn.addEventListener('click', () => { const isHidden = stepsContainer.classList.toggle('hidden'); toggleStepsBtn.textContent = isHidden ? 'Show Steps' : 'Hide Steps'; });
+
+    if(languageSelector) languageSelector.addEventListener('change', () => { if (recognition) { recognition.lang = languageSelector.value; showToast(`Voice language set to ${languageSelector.options[languageSelector.selectedIndex].text}`, 'info'); } if (isHelpPanelVisible) updateInstructions(currentMode); if (currentMode === 'photomath' && !solutionContainer.classList.contains('hidden')) { solveMockProblem(); } });
     
-    const toggleHelpPanel = (show) => {
-        isHelpPanelVisible = show;
-        if (show) {
-            updateInstructions(currentMode);
-            instructionsModalOverlay.classList.remove('opacity-0', 'pointer-events-none');
-            instructionsPanel.classList.remove('scale-95', 'opacity-0');
-        } else {
-            instructionsPanel.classList.add('scale-95', 'opacity-0');
-            instructionsModalOverlay.classList.add('opacity-0');
-            setTimeout(() => {
-                instructionsModalOverlay.classList.add('pointer-events-none');
-            }, 300); // Wait for transition to finish
-        }
-    };
+    const toggleHelpPanel = (show) => { isHelpPanelVisible = show; if (show) { updateInstructions(currentMode); instructionsModalOverlay.classList.remove('opacity-0', 'pointer-events-none'); instructionsPanel.classList.remove('scale-95', 'opacity-0'); } else { instructionsPanel.classList.add('scale-95', 'opacity-0'); instructionsModalOverlay.classList.add('opacity-0'); setTimeout(() => { instructionsModalOverlay.classList.add('pointer-events-none'); }, 300); } };
+    if(helpBtn) helpBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleHelpPanel(true); });
+    if(closeHelpBtn) closeHelpBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleHelpPanel(false); });
+    if(instructionsModalOverlay) instructionsModalOverlay.addEventListener('click', (e) => { if (e.target === instructionsModalOverlay) toggleHelpPanel(false); });
 
-    helpBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleHelpPanel(true);
-    });
-    closeHelpBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleHelpPanel(false);
-    });
+    if (menuContainer) {
+        menuContainer.addEventListener('click', e => {
+            const btn = e.target.closest('button.menu-btn'); if (!btn) return;
+            const icon = btn.querySelector('svg');
+            if (icon) { icon.classList.add('icon-animate'); icon.addEventListener('animationend', () => icon.classList.remove('icon-animate'), { once: true }); }
+            
+            const targetMode = btn.dataset.mode;
+            if (currentMode === targetMode) return;
 
-    instructionsModalOverlay.addEventListener('click', (e) => {
-        if (e.target === instructionsModalOverlay) {
-            toggleHelpPanel(false);
-        }
-    });
-
-    menuContainer.addEventListener('click', e => {
-        const btn = e.target.closest('button.menu-btn'); if (!btn) return;
-        const icon = btn.querySelector('svg');
-        if (icon) { icon.classList.add('icon-animate'); icon.addEventListener('animationend', () => icon.classList.remove('icon-animate'), { once: true }); }
-        
-        keys.style.opacity = '0'; keys.style.transform = 'translateY(10px)';
-        if (graphChart) { graphChart.destroy(); graphChart = null; }
-
-        setTimeout(() => {
-            const classes = themeClasses[currentTheme];
-            sidebar.querySelectorAll('button.menu-btn').forEach(b => b.classList.remove('active', classes.menu_active));
-            btn.classList.add('active', classes.menu_active);
-            currentMode = btn.dataset.mode;
-            if (isHelpPanelVisible) updateInstructions(currentMode);
-            expression = ''; resEl.textContent = '0';
-            renderKeys(currentMode);
-            keys.style.opacity = '1'; keys.style.transform = 'translateY(0)';
-            render();
-        }, 200);
-    });
-
-    window.addEventListener('keydown', e => {
-        const keyMap = { 'Enter': currentMode === 'ai' ? 'Ask AI' : '=', 'Escape': 'C', 'Backspace': '⌫' };
-        const targetVal = keyMap[e.key] || (('0123456789+-*/().,[]%^x').includes(e.key) ? e.key : null);
-        if (targetVal) {
-            e.preventDefault();
-            const button = document.querySelector(`[data-value="${targetVal}"]`);
-            if (button) {
-                button.classList.add('key-pressed');
-                button.addEventListener('animationend', () => {
-                    button.classList.remove('key-pressed');
-                }, { once: true });
-                button.click();
+            const oldContent = currentMode === 'photomath' ? photomathContainer : keys;
+            if (oldContent) {
+                oldContent.style.opacity = '0'; 
+                oldContent.style.transform = 'translateY(10px)';
             }
-        }
-    });
+            if (graphChart) { graphChart.destroy(); graphChart = null; }
+
+            setTimeout(() => {
+                const classes = themeClasses[currentTheme];
+                sidebar.querySelectorAll('button.menu-btn').forEach(b => b.classList.remove('active', classes.menu_active));
+                btn.classList.add('active', classes.menu_active);
+                
+                currentMode = targetMode;
+                if(currentMode !== 'photomath') {
+                    expression = ''; 
+                    if(resEl) resEl.textContent = '0';
+                } else {
+                    resetPhotomath();
+                }
+
+                if (isHelpPanelVisible) updateInstructions(currentMode);
+                renderKeys(currentMode);
+                render();
+                
+                const newContent = currentMode === 'photomath' ? photomathContainer : keys;
+                if (newContent) {
+                    newContent.style.opacity = '1'; 
+                    newContent.style.transform = 'translateY(0)';
+                }
+            }, 200);
+        });
+    }
+
+    window.addEventListener('keydown', e => { if(currentMode === 'photomath') return; const keyMap = { 'Enter': currentMode === 'ai' ? 'Ask AI' : '=', 'Escape': 'C', 'Backspace': '⌫' }; const targetVal = keyMap[e.key] || (('0123456789+-*/().,[]%^x').includes(e.key) ? e.key : null); if (targetVal) { e.preventDefault(); const button = document.querySelector(`[data-value="${targetVal}"]`); if (button) { button.classList.add('key-pressed'); button.addEventListener('animationend', () => { button.classList.remove('key-pressed'); }, { once: true }); button.click(); } } });
 
     if (window.innerWidth >= 768) {
         toggleSidebarWidth();
     }
 }
 
-// Dummy functions for Firebase to avoid errors if not configured
-function pushHistory(){} function customSave(){} function renderCustomList(){} function renderHistory(){} 
-
 function toggleSidebarWidth() {
+    if(!sidebar) return;
     isSidebarExpanded = !isSidebarExpanded;
-    const elements = {
-        title: getEl('sidebarTitle'), userId: getEl('userIdDisplay'), credit: getEl('creatorCredit'),
-        icon: getEl('toggleIcon'), labels: document.querySelectorAll('.menu-label'),
-        btns: document.querySelectorAll('.menu-btn'), header: getEl('sidebarHeader')
-    };
-    sidebar.classList.toggle('w-16', !isSidebarExpanded); sidebar.classList.toggle('w-56', isSidebarExpanded);
-    Object.values(elements).forEach(el => {
-        if(el.forEach) el.forEach(subEl => subEl.classList.toggle('hidden', !isSidebarExpanded));
-        else if(el) el.classList.toggle('hidden', !isSidebarExpanded);
-    });
-    elements.header.classList.toggle('justify-center', !isSidebarExpanded);
-    elements.header.classList.toggle('justify-between', isSidebarExpanded);
-    elements.btns.forEach(b => {
+    const title = getEl('sidebarTitle');
+    const userId = getEl('userIdDisplay');
+    const credit = getEl('creatorCredit');
+    const labels = document.querySelectorAll('.menu-label');
+    const icon = getEl('toggleIcon');
+    const btns = document.querySelectorAll('.menu-btn');
+    const header = getEl('sidebarHeader');
+    
+    sidebar.classList.toggle('w-16', !isSidebarExpanded);
+    sidebar.classList.toggle('w-56', isSidebarExpanded);
+
+    if(title) title.classList.toggle('hidden', !isSidebarExpanded);
+    if(userId) userId.classList.toggle('hidden', !isSidebarExpanded);
+    if(credit) credit.classList.toggle('hidden', !isSidebarExpanded);
+    labels.forEach(label => label.classList.toggle('hidden', !isSidebarExpanded));
+    
+    if(header) {
+        header.classList.toggle('justify-center', !isSidebarExpanded);
+        header.classList.toggle('justify-between', isSidebarExpanded);
+    }
+    btns.forEach(b => {
         b.classList.toggle('justify-center', !isSidebarExpanded);
         b.classList.toggle('justify-start', isSidebarExpanded);
     });
-    elements.icon.innerHTML = isSidebarExpanded
-        ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>`
-        : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>`;
+
+    if(icon) {
+        icon.innerHTML = isSidebarExpanded
+            ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>`
+            : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>`;
+    }
 }
 
 initializeApp();
